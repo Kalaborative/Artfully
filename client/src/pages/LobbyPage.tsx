@@ -10,12 +10,12 @@ import { Loader2 } from 'lucide-react';
 export default function LobbyPage() {
   const { code } = useParams();
   const navigate = useNavigate();
-  const { lobby, joinLobby, setupListeners, reset } = useLobbyStore();
+  const { lobby, joinLobby, setupListeners } = useLobbyStore();
   const { game, isStarting } = useGameStore();
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [_error, setError] = useState<string | null>(null);
 
   // Setup lobby listeners
   useEffect(() => {

@@ -187,11 +187,11 @@ export class GameRoom {
 
         if (result.documents.length > 0) {
           const randomIndex = Math.floor(Math.random() * result.documents.length);
-          const doc = result.documents[randomIndex];
+          const doc = result.documents[randomIndex] as any;
           this.wordChoices.push({
-            word: doc.word as string,
+            word: doc.word,
             difficulty: doc.difficulty as Difficulty,
-            category: doc.category as string
+            category: doc.category
           });
         }
       }

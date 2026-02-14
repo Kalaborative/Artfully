@@ -8,7 +8,7 @@ interface GameLeaderboardProps {
   currentDrawerId: string | null;
 }
 
-export default function GameLeaderboard({ players, currentDrawerId }: GameLeaderboardProps) {
+export default function GameLeaderboard({ players }: GameLeaderboardProps) {
   const sortedPlayers = [...players].sort((a, b) => b.points - a.points);
 
   return (

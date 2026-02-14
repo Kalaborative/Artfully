@@ -1,8 +1,6 @@
 import type { AuthenticatedSocket } from '../index.js';
 import type { GameManager } from '../../game/GameManager.js';
 import { CHAT_CONFIG } from '@artfully/shared';
-import { v4 as uuidv4 } from 'uuid';
-
 function generateId(): string {
   return Math.random().toString(36).substring(2, 15);
 }

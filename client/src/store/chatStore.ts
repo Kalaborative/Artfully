@@ -47,7 +47,7 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
     const newMessages: ChatItem[] = [
       ...messages,
       {
-        type: 'system',
+        type: 'system' as const,
         data: {
           id: `system_${Date.now()}`,
           message,
@@ -66,7 +66,7 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
       const { messages } = get();
       const newMessages: ChatItem[] = [
         ...messages,
-        { type: 'message', data }
+        { type: 'message' as const, data }
       ].slice(-CHAT_CONFIG.MESSAGES_TO_KEEP);
 
       set({ messages: newMessages });
@@ -76,7 +76,7 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
       const { messages } = get();
       const newMessages: ChatItem[] = [
         ...messages,
-        { type: 'guess', data }
+        { type: 'guess' as const, data }
       ].slice(-CHAT_CONFIG.MESSAGES_TO_KEEP);
 
       set({ messages: newMessages });
@@ -86,7 +86,7 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
       const { messages } = get();
       const newMessages: ChatItem[] = [
         ...messages,
-        { type: 'correct_guess', data }
+        { type: 'correct_guess' as const, data }
       ].slice(-CHAT_CONFIG.MESSAGES_TO_KEEP);
 
       set({ messages: newMessages });

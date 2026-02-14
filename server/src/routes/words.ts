@@ -42,7 +42,7 @@ router.get('/categories', async (_req, res) => {
       Query.limit(1000)
     ]);
 
-    const categories = [...new Set(result.documents.map(d => d.category as string))];
+    const categories = [...new Set(result.documents.map(d => (d as any).category as string))];
     res.json(categories);
   } catch (error) {
     console.error('Error fetching categories:', error);

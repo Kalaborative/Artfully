@@ -4,7 +4,7 @@ import { useGameStore } from '../store/gameStore';
 import GameRoom from '../components/game/GameRoom';
 
 export default function GamePage() {
-  const { id } = useParams();
+  const { id: _id } = useParams();
   const navigate = useNavigate();
   const { game, results, isStarting } = useGameStore();
   const hasEverHadGame = useRef(false);

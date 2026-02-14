@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useLobbyStore } from '../../store/lobbyStore';
 import { useAuthStore } from '../../store/authStore';
 import { CountryFlag } from '../profile/CountrySelector';

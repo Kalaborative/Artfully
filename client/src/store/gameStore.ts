@@ -3,10 +3,8 @@ import { getSocket } from '../lib/socket';
 import { useAuthStore } from './authStore';
 import type {
   GameState,
-  GamePlayer,
   GameResults,
   WordChoice,
-  RoundState,
   Difficulty
 } from '@artfully/shared';
 
@@ -112,7 +110,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       set({ wordChoices: choices, wordSelectionTimeLimit: timeLimit });
     };
 
-    const handleWordSelected = ({ difficulty, wordLength, maskedWord }: { difficulty: Difficulty; wordLength: number; maskedWord: string }) => {
+    const handleWordSelected = ({ difficulty, maskedWord }: { difficulty: Difficulty; wordLength: number; maskedWord: string }) => {
       const { game } = get();
       if (!game?.roundState) return;
 
@@ -130,7 +128,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       });
     };
 
-    const handleTimerUpdate = ({ timeRemaining, timerHalved }: { timeRemaining: number; timerHalved: boolean }) => {
+    const handleTimerUpdate = ({ timeRemaining }: { timeRemaining: number; timerHalved: boolean }) => {
       const { game } = get();
       if (!game?.roundState) return;
 
@@ -186,7 +184,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       });
     };
 
-    const handleRoundEnd = ({ word, drawerPoints, scores }: { word: string; drawerPoints: number; guessers: any[]; scores: Array<{ userId: string; totalPoints: number }> }) => {
+    const handleRoundEnd = ({ word, scores }: { word: string; drawerPoints: number; guessers: any[]; scores: Array<{ userId: string; totalPoints: number }> }) => {
       const { game } = get();
       if (!game?.roundState) return;
 
@@ -208,7 +206,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       });
     };
 
-    const handlePlayerLeft = ({ userId, username }: { userId: string; username: string }) => {
+    const handlePlayerLeft = ({ userId }: { userId: string; username: string }) => {
       const { game } = get();
       if (!game) return;
 

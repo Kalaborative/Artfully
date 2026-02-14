@@ -10,7 +10,7 @@ interface ToolButtonProps {
   onClick: () => void;
 }
 
-function ToolButton({ tool, icon, label, isActive, onClick }: ToolButtonProps) {
+function ToolButton({ icon, label, isActive, onClick }: ToolButtonProps) {
   return (
     <button
       onClick={onClick}
