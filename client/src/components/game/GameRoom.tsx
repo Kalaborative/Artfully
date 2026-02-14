@@ -14,7 +14,7 @@ import Timer from './Timer';
 import WordSelection from './WordSelection';
 import GameResults from './GameResults';
 import Card from '../ui/Card';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Pencil } from 'lucide-react';
 
 export default function GameRoom() {
   const { game, results, wordChoices, isStarting, startingCountdown } = useGameStore();
@@ -68,6 +68,20 @@ export default function GameRoom() {
   // Show word selection for drawer
   if (roundPhase === 'word_selection' && isDrawer && wordChoices) {
     return <WordSelection choices={wordChoices} />;
+  }
+
+  // Show waiting screen for guessers during word selection
+  if (roundPhase === 'word_selection' && !isDrawer) {
+    const drawerName = game.players.find(p => p.userId === game.currentDrawerId)?.username ?? 'Someone';
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <Card className="text-center p-12">
+          <Pencil className="w-12 h-12 text-primary-500 mx-auto mb-4 animate-bounce" />
+          <h2 className="text-2xl font-bold mb-2">{drawerName} is choosing a word...</h2>
+          <p className="text-gray-500">Get ready to guess!</p>
+        </Card>
+      </div>
+    );
   }
 
   return (
