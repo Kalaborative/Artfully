@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import Avatar from '../components/ui/Avatar';
 import { CountryFlag } from '../components/profile/CountrySelector';
@@ -67,11 +68,12 @@ export default function LeaderboardPage() {
                 };
 
                 return (
-                  <div
+                  <Link
                     key={entry.userId}
+                    to={`/player/${entry.username}`}
                     className={`
-                      flex items-center gap-4 p-4 rounded-lg transition-colors
-                      ${globalRank < 3 ? 'bg-gradient-to-r from-yellow-50 to-transparent' : 'hover:bg-gray-50'}
+                      flex items-center gap-4 p-4 rounded-lg transition-colors cursor-pointer
+                      ${globalRank < 3 ? 'bg-gradient-to-r from-yellow-50 to-transparent hover:from-yellow-100' : 'hover:bg-gray-50'}
                     `}
                   >
                     <div className={`w-8 text-center ${config.color}`}>
@@ -93,7 +95,7 @@ export default function LeaderboardPage() {
                         {entry.gamesPlayed} games • {entry.winRate.toFixed(0)}% win
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 );
               })}
             </div>

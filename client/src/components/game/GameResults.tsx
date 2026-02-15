@@ -4,7 +4,7 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Avatar from '../ui/Avatar';
 import type { GameResults as GameResultsType } from '@artfully/shared';
-import { Trophy, Medal, Star, Home, RotateCcw } from 'lucide-react';
+import { Trophy, Medal, Star, Home } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 
 interface GameResultsProps {
@@ -22,7 +22,14 @@ export default function GameResults({ results }: GameResultsProps) {
 
   useEffect(() => {
     useAuthStore.getState().refreshStatistics();
-  }, []);
+
+    // Auto-redirect to home after 5 seconds
+    const timeout = setTimeout(() => {
+      navigate('/');
+    }, 5000);
+
+    return () => clearTimeout(timeout);
+  }, [navigate]);
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
@@ -76,19 +83,13 @@ export default function GameResults({ results }: GameResultsProps) {
 
         <div className="flex gap-4 justify-center">
           <Button
-            variant="secondary"
             leftIcon={<Home className="w-5 h-5" />}
             onClick={() => navigate('/')}
           >
             Home
           </Button>
-          <Button
-            leftIcon={<RotateCcw className="w-5 h-5" />}
-            onClick={() => navigate('/lobby')}
-          >
-            Play Again
-          </Button>
         </div>
+        <p className="text-sm text-gray-400 mt-3">Returning to home in 5 seconds...</p>
       </Card>
     </div>
   );

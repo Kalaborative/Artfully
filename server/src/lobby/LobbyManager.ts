@@ -241,6 +241,25 @@ export class LobbyManager {
     this.lobbies.delete(lobby.id);
   }
 
+  findOpenLobby(gameMode: GameMode): InternalLobby | null {
+    let best: InternalLobby | null = null;
+
+    for (const lobby of this.lobbies.values()) {
+      if (
+        lobby.gameMode === gameMode &&
+        lobby.status === 'waiting' &&
+        !lobby.isPrivate &&
+        lobby.players.size < lobby.maxPlayers
+      ) {
+        if (!best || lobby.players.size > best.players.size) {
+          best = lobby;
+        }
+      }
+    }
+
+    return best;
+  }
+
   getLobbyByPlayer(userId: string): LobbyState | null {
     const lobbyId = this.playerLobby.get(userId);
     if (!lobbyId) return null;
@@ -261,6 +280,19 @@ export class LobbyManager {
       lobby.status = status;
       this.stopTimer(lobby);
     }
+  }
+
+  closeLobby(lobbyId: string): void {
+    const lobby = this.lobbies.get(lobbyId);
+    if (!lobby) return;
+
+    // Remove all player-to-lobby mappings
+    for (const userId of lobby.players.keys()) {
+      this.playerLobby.delete(userId);
+    }
+
+    this.deleteLobby(lobby);
+    console.log(`[LobbyManager] Closed lobby ${lobby.code} (${lobbyId})`);
   }
 
   handleDisconnect(socket: AuthenticatedSocket): void {

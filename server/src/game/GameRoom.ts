@@ -53,6 +53,7 @@ export class GameRoom {
   private strokes: string[] = [];
   private pointCalculator: PointCalculator;
   private isEnded: boolean = false;
+  onGameEnd: ((lobbyId: string) => void) | null = null;
 
   constructor(
     io: Server<ClientToServerEvents, ServerToClientEvents>,
@@ -500,6 +501,11 @@ export class GameRoom {
     this.updatePlayerStatistics(sortedPlayers).catch(err =>
       console.error('[GameRoom] Failed to update player statistics:', err)
     );
+
+    // Notify that the game has ended
+    if (this.onGameEnd) {
+      this.onGameEnd(this.lobbyId);
+    }
   }
 
   private async updatePlayerStatistics(sortedPlayers: GamePlayer[]): Promise<void> {

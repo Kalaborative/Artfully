@@ -10,6 +10,7 @@ import ProfilePage from './pages/ProfilePage';
 import LobbyPage from './pages/LobbyPage';
 import GamePage from './pages/GamePage';
 import LeaderboardPage from './pages/LeaderboardPage';
+import PlayerProfilePage from './pages/PlayerProfilePage';
 import PracticePage from './pages/PracticePage';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -59,6 +60,7 @@ function App() {
           element={isAuthenticated ? <Navigate to="/" replace /> : <RegisterPage />}
         />
         <Route path="leaderboard" element={<LeaderboardPage />} />
+        <Route path="player/:username" element={<PlayerProfilePage />} />
         <Route
           path="profile"
           element={

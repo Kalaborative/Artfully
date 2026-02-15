@@ -105,8 +105,52 @@ export class MatchmakingManager {
   private async tryCreateMatch(gameMode: GameMode): Promise<void> {
     const queue = this.queues.get(gameMode);
     if (!queue) return;
+    if (queue.players.size === 0) return;
 
-    // Check if we have enough players
+    // Check if there's an existing open lobby to join
+    const openLobby = this.lobbyManager.findOpenLobby(gameMode);
+
+    if (openLobby) {
+      // Route queued players into the existing lobby
+      const sortedPlayers = Array.from(queue.players.values())
+        .sort((a, b) => a.joinedAt - b.joinedAt);
+
+      const availableSlots = openLobby.maxPlayers - openLobby.players.size;
+      const playersToJoin = sortedPlayers.slice(0, availableSlots);
+
+      try {
+        for (const player of playersToJoin) {
+          queue.players.delete(player.userId);
+          await this.lobbyManager.joinLobby(player.socket, openLobby.code);
+        }
+
+        // Get the updated lobby state and notify joined players
+        const updatedLobby = this.lobbyManager.getLobbyByPlayer(playersToJoin[0].userId);
+        if (updatedLobby) {
+          for (const player of playersToJoin) {
+            player.socket.emit('matchmaking:match_found', { lobby: updatedLobby });
+          }
+        }
+
+        console.log(`Matched ${playersToJoin.length} player(s) into existing lobby ${openLobby.code} for ${gameMode} mode`);
+
+        // Broadcast queue update for remaining players
+        this.broadcastQueueUpdate(gameMode);
+
+        // Recursively drain the queue
+        await this.tryCreateMatch(gameMode);
+      } catch (error) {
+        console.error('Failed to join existing lobby:', error);
+        for (const player of playersToJoin) {
+          if (!queue.players.has(player.userId)) {
+            queue.players.set(player.userId, player);
+          }
+        }
+      }
+      return;
+    }
+
+    // No open lobby exists — need minimum players to create a new one
     if (queue.players.size < MATCHMAKING_MIN_PLAYERS) {
       return;
     }

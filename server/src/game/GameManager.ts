@@ -44,6 +44,17 @@ export class GameManager {
 
     this.games.set(lobby.id, game);
 
+    // Schedule lobby + game cleanup when the game ends
+    game.onGameEnd = (lobbyId: string) => {
+      console.log(`[GameManager] Game ended for lobby ${lobbyId}, scheduling cleanup`);
+      setTimeout(() => {
+        this.lobbyManager.setLobbyStatus(lobbyId, 'finished');
+        this.lobbyManager.closeLobby(lobbyId);
+        this.cleanupGame(lobbyId);
+        console.log(`[GameManager] Cleanup complete for lobby ${lobbyId}`);
+      }, 5000);
+    };
+
     // Map players to game
     for (const player of lobby.players) {
       this.playerGame.set(player.userId, lobby.id);

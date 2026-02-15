@@ -14,6 +14,13 @@ export default function GamePage() {
     hasEverHadGame.current = true;
   }
 
+  // Clear game results when leaving the page
+  useEffect(() => {
+    return () => {
+      useGameStore.getState().reset();
+    };
+  }, []);
+
   // Only redirect if we've never seen any game activity and some time has passed
   useEffect(() => {
     if (hasEverHadGame.current) return;
