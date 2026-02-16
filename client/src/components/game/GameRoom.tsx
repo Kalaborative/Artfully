@@ -17,7 +17,7 @@ import Card from '../ui/Card';
 import { Loader2, Pencil } from 'lucide-react';
 
 export default function GameRoom() {
-  const { game, results, wordChoices, isStarting, startingCountdown } = useGameStore();
+  const { game, results, wordChoices, isStarting, startingCountdown, kickPlayer } = useGameStore();
   const { setupListeners: setupCanvasListeners, reset: resetCanvas } = useCanvasStore();
   const { setupListeners: setupChatListeners, reset: resetChat } = useChatStore();
   const { user } = useAuthStore();
@@ -89,7 +89,13 @@ export default function GameRoom() {
       <div className="grid grid-cols-12 gap-4">
         {/* Left sidebar - Leaderboard */}
         <div className="col-span-12 lg:col-span-2">
-          <GameLeaderboard players={game.players} currentDrawerId={game.currentDrawerId} />
+          <GameLeaderboard
+            players={game.players}
+            currentDrawerId={game.currentDrawerId}
+            hostId={game.hostId}
+            currentUserId={user?.$id}
+            onKick={kickPlayer}
+          />
         </div>
 
         {/* Main content - Canvas */}
@@ -105,7 +111,7 @@ export default function GameRoom() {
                   <WordHint
                     maskedWord={game.roundState.maskedWord}
                     isDrawer={isDrawer}
-                    word={isDrawer ? game.roundState.word : null}
+                    word={isDrawer || game.roundState.phase === 'round_end' ? game.roundState.word : null}
                   />
                 )}
               </div>

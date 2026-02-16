@@ -23,6 +23,8 @@ export const SOCKET_EVENTS = {
   LOBBY_TIMER_START: 'lobby:timer_start',
   LOBBY_TIMER_UPDATE: 'lobby:timer_update',
   LOBBY_HOST_CHANGED: 'lobby:host_changed',
+  LOBBY_KICK: 'lobby:kick',
+  LOBBY_KICKED: 'lobby:kicked',
   LOBBY_ERROR: 'lobby:error',
 
   // Game

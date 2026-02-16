@@ -52,6 +52,7 @@ export class GameRoom {
   private roundGuessers: RoundGuesser[] = [];
   private strokes: string[] = [];
   private pointCalculator: PointCalculator;
+  private hostId: string;
   private isEnded: boolean = false;
   onGameEnd: ((lobbyId: string) => void) | null = null;
 
@@ -59,10 +60,12 @@ export class GameRoom {
     io: Server<ClientToServerEvents, ServerToClientEvents>,
     lobbyId: string,
     gameMode: GameMode,
-    lobbyPlayers: LobbyPlayer[]
+    lobbyPlayers: LobbyPlayer[],
+    hostId: string
   ) {
     this.io = io;
     this.lobbyId = lobbyId;
+    this.hostId = hostId;
     this.roomId = `game:${lobbyId}`;
     this.gameMode = gameMode;
     this.totalRounds = GAME_MODE_CONFIG[gameMode].rounds * lobbyPlayers.length;
@@ -126,14 +129,15 @@ export class GameRoom {
     // Reset round state
     this.roundGuessers = [];
     this.strokes = [];
+    this.roundState = null;
 
     // Get current drawer
     const drawerIndex = (this.currentRound - 1) % this.turnOrder.length;
     const drawerId = this.turnOrder[drawerIndex];
     const drawer = this.players.get(drawerId);
 
-    if (!drawer) {
-      this.startRound(); // Skip if drawer left
+    if (!drawer || !drawer.isConnected) {
+      this.startRound(); // Skip if drawer left or disconnected
       return;
     }
 
@@ -165,11 +169,11 @@ export class GameRoom {
       });
     }
 
-    // Start word selection timer
+    // Start word selection timer — auto-select a random word if drawer doesn't choose
     this.wordSelectionTimer = setTimeout(() => {
-      // Auto-select first word if not selected
       if (!this.roundState?.word) {
-        this.selectWord(0);
+        const randomIndex = Math.floor(Math.random() * this.wordChoices.length);
+        this.selectWord(randomIndex);
       }
     }, GAME_MODE_CONFIG[this.gameMode].wordSelectionTime * 1000);
   }
@@ -246,7 +250,7 @@ export class GameRoom {
       timeRemaining: GAME_MODE_CONFIG[this.gameMode].drawingTime,
       totalTime: GAME_MODE_CONFIG[this.gameMode].drawingTime,
       hintsRevealed: 0,
-      guessersRemaining: this.players.size - 1,
+      guessersRemaining: Array.from(this.players.values()).filter(p => p.isConnected && p.userId !== drawerId).length,
       firstGuessTime: null,
       correctGuessers: [],
       phase: 'drawing'
@@ -617,10 +621,15 @@ export class GameRoom {
     return player?.hasGuessedCorrectly ?? false;
   }
 
+  getHostId(): string {
+    return this.hostId;
+  }
+
   getState(): GameState {
     return {
       id: this.lobbyId,
       lobbyId: this.lobbyId,
+      hostId: this.hostId,
       gameMode: this.gameMode,
       totalRounds: this.totalRounds,
       currentRound: this.currentRound,
@@ -670,22 +679,21 @@ export class GameRoom {
   }
 
   broadcastGuessAttempt(guess: ChatGuessPayload): void {
-    // Send to players who haven't guessed yet (and aren't the drawer)
-    for (const player of this.players.values()) {
-      if (!player.hasGuessedCorrectly && player.userId !== this.getCurrentDrawerId()) {
-        const socket = this.getPlayerSocket(player.userId);
-        socket?.emit('chat:guess', guess);
-      }
-    }
+    // Send to all players — correct guessers already know the word so no risk
+    this.io.to(this.roomId).emit('chat:guess', guess);
   }
 
   broadcastToCorrectGuessers(message: ChatMessagePayload): void {
-    // Send to players who have already guessed correctly
-    for (const player of this.players.values()) {
-      if (player.hasGuessedCorrectly) {
-        const socket = this.getPlayerSocket(player.userId);
-        socket?.emit('chat:message', message);
-      }
+    // Send to the drawer and back to the sender only
+    const drawerId = this.getCurrentDrawerId();
+    if (drawerId) {
+      const socket = this.getPlayerSocket(drawerId);
+      socket?.emit('chat:message', message);
+    }
+    // Echo back to the sender so they can see their own message
+    if (message.userId !== drawerId) {
+      const senderSocket = this.getPlayerSocket(message.userId);
+      senderSocket?.emit('chat:message', message);
     }
   }
 
@@ -724,6 +732,49 @@ export class GameRoom {
         this.endGame();
       }
     }
+  }
+
+  kickPlayer(targetUserId: string): { username: string } | null {
+    const player = this.players.get(targetUserId);
+    if (!player) return null;
+
+    const username = player.username;
+    player.isConnected = false;
+
+    // Force-leave the game room
+    const targetSocket = this.getPlayerSocket(targetUserId);
+    if (targetSocket) {
+      targetSocket.leave(this.roomId);
+    }
+
+    // Notify remaining players
+    this.io.to(this.roomId).emit('game:player_left', {
+      userId: targetUserId,
+      username
+    });
+
+    // Broadcast system chat message
+    this.broadcastChatMessage({
+      id: `system_kick_${Date.now()}`,
+      userId: 'system',
+      username: 'System',
+      message: `${username} was kicked from the lobby.`,
+      timestamp: Date.now(),
+      isSystem: true
+    });
+
+    // If the kicked player was the drawer, end the round
+    if (this.getCurrentDrawerId() === targetUserId) {
+      this.endRound();
+    }
+
+    // Check if game should end (less than 2 connected players)
+    const connectedPlayers = Array.from(this.players.values()).filter(p => p.isConnected);
+    if (connectedPlayers.length < 2) {
+      this.endGame();
+    }
+
+    return { username };
   }
 
   getRoomId(): string {

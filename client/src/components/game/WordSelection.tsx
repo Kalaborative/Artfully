@@ -41,6 +41,9 @@ export default function WordSelection({ choices }: WordSelectionProps) {
       setTimeLeft((t) => {
         if (t <= 1) {
           clearInterval(timer);
+          // Auto-select a random word when time runs out
+          const randomIndex = Math.floor(Math.random() * choices.length);
+          selectWord(randomIndex);
           return 0;
         }
         return t - 1;
@@ -48,7 +51,7 @@ export default function WordSelection({ choices }: WordSelectionProps) {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [choices.length, selectWord]);
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center">

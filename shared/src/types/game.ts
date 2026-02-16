@@ -78,6 +78,7 @@ export interface RoundState {
 export interface GameState {
   id: string;
   lobbyId: string;
+  hostId: string;
   gameMode: GameMode;
   totalRounds: number;
   currentRound: number;

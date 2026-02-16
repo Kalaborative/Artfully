@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '../store/authStore';
-import { databases, DATABASE_ID, COLLECTIONS, ID } from '../lib/appwrite';
+import { databases, DATABASE_ID, COLLECTIONS, ID, account } from '../lib/appwrite';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import AvatarUploader from '../components/profile/AvatarUploader';
 import CountrySelector, { CountryFlag } from '../components/profile/CountrySelector';
+import DrawingGallery from '../components/profile/DrawingGallery';
 import { User, Trophy, Target, Award, Edit2, Save, X, AlertCircle } from 'lucide-react';
+import type { SavedDrawing } from '@artfully/shared';
 
 export default function ProfilePage() {
   const { user, profile, statistics, updateProfile, refreshProfile } = useAuthStore();
@@ -16,6 +18,40 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [drawings, setDrawings] = useState<SavedDrawing[]>([]);
+
+  const fetchDrawings = useCallback(async () => {
+    try {
+      const jwt = await account.createJWT();
+      const serverUrl = import.meta.env.VITE_SERVER_URL || '';
+      const res = await fetch(`${serverUrl}/api/drawings`, {
+        headers: { 'Authorization': `Bearer ${jwt.jwt}` },
+      });
+      if (res.ok) {
+        setDrawings(await res.json());
+      }
+    } catch {
+      // Silently fail - gallery just won't show
+    }
+  }, []);
+
+  const handleDeleteDrawing = useCallback(async (id: string) => {
+    const jwt = await account.createJWT();
+    const serverUrl = import.meta.env.VITE_SERVER_URL || '';
+    const res = await fetch(`${serverUrl}/api/drawings/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${jwt.jwt}` },
+    });
+    if (res.ok) {
+      setDrawings(prev => prev.filter(d => d.id !== id));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (profile) {
+      fetchDrawings();
+    }
+  }, [profile, fetchDrawings]);
 
   const handleSave = async () => {
     setIsLoading(true);
@@ -251,6 +287,15 @@ export default function ProfilePage() {
             />
           </div>
         </Card>
+      </div>
+
+      {/* Gallery */}
+      <div className="mt-6">
+        <DrawingGallery
+          drawings={drawings}
+          isOwner={true}
+          onDelete={handleDeleteDrawing}
+        />
       </div>
     </div>
   );

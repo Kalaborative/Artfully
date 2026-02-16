@@ -3,8 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import Avatar from '../components/ui/Avatar';
 import { CountryFlag } from '../components/profile/CountrySelector';
+import DrawingGallery from '../components/profile/DrawingGallery';
 import { User, Trophy, Target, Award, ArrowLeft, UserX } from 'lucide-react';
-import type { UserProfile, UserStatistics } from '@artfully/shared';
+import type { UserProfile, UserStatistics, SavedDrawing } from '@artfully/shared';
 
 function StatBox({ icon, label, value }: { icon: React.ReactNode; label: string; value: number | string }) {
   return (
@@ -22,6 +23,7 @@ export default function PlayerProfilePage() {
   const { username } = useParams<{ username: string }>();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [statistics, setStatistics] = useState<UserStatistics | null>(null);
+  const [drawings, setDrawings] = useState<SavedDrawing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,6 +47,16 @@ export default function PlayerProfilePage() {
         const { statistics: stats, ...profileData } = data;
         setProfile(profileData as UserProfile);
         setStatistics(stats as UserStatistics | null);
+
+        // Fetch drawings
+        try {
+          const drawingsRes = await fetch(`${import.meta.env.VITE_SERVER_URL || ''}/api/drawings/user/${encodeURIComponent(username)}`);
+          if (drawingsRes.ok) {
+            setDrawings(await drawingsRes.json());
+          }
+        } catch {
+          // Gallery just won't show
+        }
       } catch {
         setError('Failed to load player profile');
       } finally {
@@ -156,6 +168,13 @@ export default function PlayerProfilePage() {
           </div>
         </Card>
       </div>
+
+      {/* Gallery */}
+      {drawings.length > 0 && (
+        <div className="mt-6">
+          <DrawingGallery drawings={drawings} isOwner={false} />
+        </div>
+      )}
     </div>
   );
 }

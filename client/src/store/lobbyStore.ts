@@ -10,6 +10,7 @@ interface LobbyStoreState {
   playersInQueue: number;
   error: string | null;
   timerSeconds: number | null;
+  wasKicked: boolean;
 
   createLobby: (options: CreateLobbyOptions) => Promise<LobbyState>;
   joinLobby: (code: string) => Promise<LobbyState>;
@@ -18,6 +19,7 @@ interface LobbyStoreState {
   leaveLobby: () => void;
   startGame: () => void;
   setReady: (ready: boolean) => void;
+  kickPlayer: (userId: string) => void;
   setupListeners: () => () => void;
   reset: () => void;
 }
@@ -30,6 +32,7 @@ export const useLobbyStore = create<LobbyStoreState>((set, get) => ({
   playersInQueue: 0,
   error: null,
   timerSeconds: null,
+  wasKicked: false,
 
   createLobby: async (options: CreateLobbyOptions) => {
     set({ isCreating: true, error: null });
@@ -138,6 +141,11 @@ export const useLobbyStore = create<LobbyStoreState>((set, get) => ({
     socket.emit('lobby:ready', ready);
   },
 
+  kickPlayer: (userId: string) => {
+    const socket = getSocket();
+    socket.emit('lobby:kick', userId);
+  },
+
   setupListeners: () => {
     const socket = getSocket();
 
@@ -206,6 +214,10 @@ export const useLobbyStore = create<LobbyStoreState>((set, get) => ({
       console.log('[Client] lobby:game_started received, gameId:', gameId);
     };
 
+    const handleKicked = () => {
+      set({ lobby: null, timerSeconds: null, wasKicked: true });
+    };
+
     socket.on('lobby:player_joined', handlePlayerJoined);
     socket.on('lobby:player_left', handlePlayerLeft);
     socket.on('lobby:host_changed', handleHostChanged);
@@ -213,6 +225,7 @@ export const useLobbyStore = create<LobbyStoreState>((set, get) => ({
     socket.on('lobby:timer_update', handleTimerUpdate);
     socket.on('lobby:error', handleError);
     socket.on('lobby:game_started', handleGameStarted);
+    socket.on('lobby:kicked', handleKicked);
 
     return () => {
       socket.off('lobby:player_joined', handlePlayerJoined);
@@ -222,6 +235,7 @@ export const useLobbyStore = create<LobbyStoreState>((set, get) => ({
       socket.off('lobby:timer_update', handleTimerUpdate);
       socket.off('lobby:error', handleError);
       socket.off('lobby:game_started', handleGameStarted);
+      socket.off('lobby:kicked', handleKicked);
     };
   },
 
@@ -233,7 +247,8 @@ export const useLobbyStore = create<LobbyStoreState>((set, get) => ({
       isMatchmaking: false,
       playersInQueue: 0,
       error: null,
-      timerSeconds: null
+      timerSeconds: null,
+      wasKicked: false
     });
   }
 }));

@@ -1,5 +1,5 @@
 import { useCanvasStore } from '../../store/canvasStore';
-import { Pencil, Pen, Paintbrush, Eraser, PaintBucket, Undo2, Redo2, Trash2 } from 'lucide-react';
+import { Pencil, Pen, Paintbrush, Eraser, PaintBucket, Undo2, Redo2, Trash2, Play, Save } from 'lucide-react';
 import type { ToolType } from '@artfully/shared';
 
 interface ToolButtonProps {
@@ -28,7 +28,14 @@ function ToolButton({ icon, label, isActive, onClick }: ToolButtonProps) {
   );
 }
 
-export default function CanvasToolbar() {
+interface CanvasToolbarProps {
+  onReplay?: () => void;
+  onSave?: () => void;
+  isSaving?: boolean;
+  saveLabel?: string;
+}
+
+export default function CanvasToolbar({ onReplay, onSave, isSaving, saveLabel }: CanvasToolbarProps) {
   const {
     currentTool,
     setTool,
@@ -36,8 +43,11 @@ export default function CanvasToolbar() {
     redo,
     clear,
     strokes,
+    fillActions,
     undoStack,
   } = useCanvasStore();
+
+  const hasContent = strokes.length > 0 || fillActions.length > 0;
 
   const tools: { tool: ToolType; icon: React.ReactNode; label: string }[] = [
     { tool: 'pencil', icon: <Pencil className="w-5 h-5" />, label: 'Pencil' },
@@ -92,6 +102,37 @@ export default function CanvasToolbar() {
       >
         <Trash2 className="w-5 h-5" />
       </button>
+
+      {(onReplay || onSave) && (
+        <>
+          <div className="h-8 w-px bg-gray-200" />
+
+          <div className="flex gap-1">
+            {onReplay && (
+              <button
+                onClick={onReplay}
+                disabled={!hasContent}
+                title="Replay drawing"
+                className="p-2 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                <Play className="w-5 h-5" />
+              </button>
+            )}
+
+            {onSave && (
+              <button
+                onClick={onSave}
+                disabled={!hasContent || isSaving}
+                title={saveLabel || 'Save to Profile'}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium"
+              >
+                <Save className="w-4 h-4" />
+                {isSaving ? 'Saving...' : (saveLabel || 'Save to Profile')}
+              </button>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

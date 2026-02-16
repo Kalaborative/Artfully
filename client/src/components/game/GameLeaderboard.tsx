@@ -1,14 +1,17 @@
 import Card from '../ui/Card';
 import Avatar from '../ui/Avatar';
 import type { GamePlayer } from '@artfully/shared';
-import { Pencil, CheckCircle, Crown } from 'lucide-react';
+import { Pencil, CheckCircle, Crown, X } from 'lucide-react';
 
 interface GameLeaderboardProps {
   players: GamePlayer[];
   currentDrawerId: string | null;
+  hostId?: string;
+  currentUserId?: string;
+  onKick?: (userId: string) => void;
 }
 
-export default function GameLeaderboard({ players }: GameLeaderboardProps) {
+export default function GameLeaderboard({ players, hostId, currentUserId, onKick }: GameLeaderboardProps) {
   const sortedPlayers = [...players].sort((a, b) => b.points - a.points);
 
   return (
@@ -48,6 +51,15 @@ export default function GameLeaderboard({ players }: GameLeaderboardProps) {
                 <CheckCircle className="w-4 h-4 text-green-500" />
               )}
               <span className="text-sm font-bold">{player.points}</span>
+              {hostId && currentUserId === hostId && player.userId !== hostId && player.isConnected && onKick && (
+                <button
+                  onClick={() => onKick(player.userId)}
+                  className="p-0.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors ml-1"
+                  title="Kick player"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
           </div>
         ))}

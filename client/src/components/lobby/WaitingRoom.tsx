@@ -5,10 +5,10 @@ import { CountryFlag } from '../profile/CountrySelector';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Avatar from '../ui/Avatar';
-import { Copy, Check, Users, Crown, Clock, Play } from 'lucide-react';
+import { Copy, Check, Users, Crown, Clock, Play, UserMinus } from 'lucide-react';
 
 export default function WaitingRoom() {
-  const { lobby, timerSeconds, startGame, leaveLobby } = useLobbyStore();
+  const { lobby, timerSeconds, startGame, leaveLobby, kickPlayer } = useLobbyStore();
   const { user } = useAuthStore();
   const [copied, setCopied] = useState(false);
 
@@ -97,8 +97,24 @@ export default function WaitingRoom() {
                 </div>
                 <span className="text-sm text-gray-500">@{player.username}</span>
               </div>
+              {player.worldRank ? (
+                <span className="text-sm font-medium text-yellow-600 bg-yellow-50 px-2 py-1 rounded-full">
+                  #{player.worldRank}
+                </span>
+              ) : (
+                <span className="text-xs text-gray-400">Unranked</span>
+              )}
               {player.countryCode && (
                 <CountryFlag code={player.countryCode} size={24} />
+              )}
+              {isHost && !player.isHost && (
+                <button
+                  onClick={() => kickPlayer(player.userId)}
+                  className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  title="Kick player"
+                >
+                  <UserMinus className="w-4 h-4" />
+                </button>
               )}
             </div>
           ))}

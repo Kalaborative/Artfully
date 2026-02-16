@@ -18,6 +18,20 @@ export function setupChatHandlers(
     const game = gameManager.getGameByPlayer(socket.userId);
     if (!game) return;
 
+    // If sender has guessed correctly, only show to the drawer (prevent leaking the word)
+    const isDrawer = game.getCurrentDrawerId() === socket.userId;
+    if (!isDrawer && game.hasPlayerGuessed(socket.userId)) {
+      game.broadcastToCorrectGuessers({
+        id: generateId(),
+        userId: socket.userId,
+        username: socket.username,
+        message: trimmedMessage,
+        timestamp: Date.now(),
+        isSystem: false
+      });
+      return;
+    }
+
     // Broadcast to all players in the game room
     game.broadcastChatMessage({
       id: generateId(),

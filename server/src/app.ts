@@ -4,6 +4,7 @@ import { getEnv } from './lib/env.js';
 import userRoutes from './routes/users.js';
 import leaderboardRoutes from './routes/leaderboard.js';
 import wordRoutes from './routes/words.js';
+import drawingRoutes from './routes/drawings.js';
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.get('/health', (_req, res) => {
 app.use('/api/users', userRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/words', wordRoutes);
+app.use('/api/drawings', drawingRoutes);
 
 // Error handling
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {

@@ -6,13 +6,21 @@ import GameRoom from '../components/game/GameRoom';
 export default function GamePage() {
   const { id: _id } = useParams();
   const navigate = useNavigate();
-  const { game, results, isStarting } = useGameStore();
+  const { game, results, isStarting, wasKicked } = useGameStore();
   const hasEverHadGame = useRef(false);
 
   // Track if we've ever had a game or starting state
   if (game || isStarting || results) {
     hasEverHadGame.current = true;
   }
+
+  // Handle kicked redirect
+  useEffect(() => {
+    if (wasKicked) {
+      useGameStore.getState().reset();
+      navigate('/', { replace: true });
+    }
+  }, [wasKicked, navigate]);
 
   // Clear game results when leaving the page
   useEffect(() => {

@@ -39,7 +39,8 @@ export class GameManager {
       this.io,
       lobby.id,
       lobby.gameMode,
-      lobby.players
+      lobby.players,
+      lobby.hostId
     );
 
     this.games.set(lobby.id, game);
@@ -88,6 +89,28 @@ export class GameManager {
 
     game.handlePlayerDisconnect(userId);
     this.playerGame.delete(userId);
+  }
+
+  kickPlayer(hostUserId: string, targetUserId: string): boolean {
+    const game = this.getGameByPlayer(hostUserId);
+    if (!game) return false;
+
+    // Validate the caller is the host
+    if (game.getHostId() !== hostUserId) return false;
+
+    const result = game.kickPlayer(targetUserId);
+    if (!result) return false;
+
+    // Remove player-game mapping
+    this.playerGame.delete(targetUserId);
+
+    // Emit kicked event to target
+    const targetSocket = this.getPlayerSocket(targetUserId);
+    if (targetSocket) {
+      targetSocket.emit('lobby:kicked', { reason: 'You were kicked by the host' });
+    }
+
+    return true;
   }
 
   handleDisconnect(socket: AuthenticatedSocket): void {

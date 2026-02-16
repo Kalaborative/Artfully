@@ -5,11 +5,11 @@ interface WordHintProps {
 }
 
 export default function WordHint({ maskedWord, isDrawer, word }: WordHintProps) {
-  if (isDrawer && word) {
+  if (word) {
     return (
       <div className="mt-1">
         <span className="text-lg font-bold text-primary-500">{word}</span>
-        <span className="text-sm text-gray-500 ml-2">(Your word)</span>
+        {isDrawer && <span className="text-sm text-gray-500 ml-2">(Your word)</span>}
       </div>
     );
   }

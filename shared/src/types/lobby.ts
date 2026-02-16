@@ -24,6 +24,7 @@ export interface LobbyPlayer {
   displayName: string;
   avatarUrl?: string;
   countryCode?: string;
+  worldRank?: number;
   isHost: boolean;
   isReady: boolean;
   joinedAt: string;

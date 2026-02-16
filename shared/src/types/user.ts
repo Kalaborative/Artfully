@@ -46,3 +46,13 @@ export interface UpdateProfileData {
   avatarFileId?: string;
   avatarUrl?: string;
 }
+
+export interface SavedDrawing {
+  id: string;
+  userId: string;
+  imageFileId: string;
+  imageUrl: string;
+  createdAt: string;
+}
+
+export const MAX_SAVED_DRAWINGS = 3;

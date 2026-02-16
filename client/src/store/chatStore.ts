@@ -64,9 +64,12 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
 
     const handleMessage = (data: ChatMessagePayload) => {
       const { messages } = get();
+      const item: ChatItem = data.isSystem
+        ? { type: 'system' as const, data: { id: data.id, message: data.message, timestamp: data.timestamp } }
+        : { type: 'message' as const, data };
       const newMessages: ChatItem[] = [
         ...messages,
-        { type: 'message' as const, data }
+        item
       ].slice(-CHAT_CONFIG.MESSAGES_TO_KEEP);
 
       set({ messages: newMessages });

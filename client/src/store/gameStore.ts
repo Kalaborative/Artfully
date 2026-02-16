@@ -16,9 +16,11 @@ interface GameStoreState {
   isStarting: boolean;
   startingCountdown: number;
   error: string | null;
+  wasKicked: boolean;
 
   selectWord: (index: number) => void;
   leaveGame: () => void;
+  kickPlayer: (userId: string) => void;
   setupListeners: () => () => void;
   reset: () => void;
 }
@@ -31,6 +33,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   isStarting: false,
   startingCountdown: 0,
   error: null,
+  wasKicked: false,
 
   selectWord: (index: number) => {
     const socket = getSocket();
@@ -42,6 +45,11 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const socket = getSocket();
     socket.emit('game:leave');
     set({ game: null, results: null });
+  },
+
+  kickPlayer: (userId: string) => {
+    const socket = getSocket();
+    socket.emit('lobby:kick', userId);
   },
 
   setupListeners: () => {
@@ -220,6 +228,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       });
     };
 
+    const handleKicked = () => {
+      set({ game: null, results: null, wasKicked: true });
+    };
+
     socket.on('game:starting', handleGameStarting);
     socket.on('game:started', handleGameStarted);
     socket.on('game:ended', handleGameEnded);
@@ -231,6 +243,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     socket.on('round:hint_reveal', handleHintReveal);
     socket.on('round:correct_guess', handleCorrectGuess);
     socket.on('round:end', handleRoundEnd);
+    socket.on('lobby:kicked', handleKicked);
 
     return () => {
       socket.off('game:starting', handleGameStarting);
@@ -244,6 +257,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       socket.off('round:hint_reveal', handleHintReveal);
       socket.off('round:correct_guess', handleCorrectGuess);
       socket.off('round:end', handleRoundEnd);
+      socket.off('lobby:kicked', handleKicked);
     };
   },
 
@@ -254,7 +268,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       wordChoices: null,
       isStarting: false,
       startingCountdown: 0,
-      error: null
+      error: null,
+      wasKicked: false
     });
   }
 }));

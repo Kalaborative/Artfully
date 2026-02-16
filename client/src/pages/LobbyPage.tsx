@@ -10,7 +10,7 @@ import { Loader2 } from 'lucide-react';
 export default function LobbyPage() {
   const { code } = useParams();
   const navigate = useNavigate();
-  const { lobby, joinLobby, setupListeners } = useLobbyStore();
+  const { lobby, joinLobby, setupListeners, wasKicked } = useLobbyStore();
   const { game, isStarting } = useGameStore();
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
@@ -25,6 +25,14 @@ export default function LobbyPage() {
       unsubLobby();
     };
   }, [setupListeners]);
+
+  // Handle kicked redirect
+  useEffect(() => {
+    if (wasKicked) {
+      useLobbyStore.getState().reset();
+      navigate('/', { replace: true });
+    }
+  }, [wasKicked, navigate]);
 
   // Join lobby if code is provided
   useEffect(() => {

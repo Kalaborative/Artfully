@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import confetti from 'canvas-confetti';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Avatar from '../ui/Avatar';
@@ -21,14 +22,39 @@ export default function GameResults({ results }: GameResultsProps) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    useAuthStore.getState().refreshStatistics();
+    // Delay stats refresh to give the server time to update the database
+    const statsTimeout = setTimeout(() => {
+      useAuthStore.getState().refreshStatistics();
+    }, 2000);
+
+    // Fire confetti burst
+    const end = Date.now() + 1000;
+    const frame = () => {
+      confetti({
+        particleCount: 3,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0, y: 0.6 },
+      });
+      confetti({
+        particleCount: 3,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1, y: 0.6 },
+      });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    };
+    frame();
 
     // Auto-redirect to home after 5 seconds
     const timeout = setTimeout(() => {
       navigate('/');
     }, 5000);
 
-    return () => clearTimeout(timeout);
+    return () => {
+      clearTimeout(timeout);
+      clearTimeout(statsTimeout);
+    };
   }, [navigate]);
 
   return (

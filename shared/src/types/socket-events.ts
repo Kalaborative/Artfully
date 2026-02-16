@@ -196,6 +196,7 @@ export interface ClientToServerEvents {
   'lobby:leave': () => void;
   'lobby:start': () => void;
   'lobby:ready': (ready: boolean) => void;
+  'lobby:kick': (userId: string) => void;
 
   'matchmaking:join': (payload: MatchmakingJoinPayload, callback: (response: { success: boolean; error?: string }) => void) => void;
   'matchmaking:leave': () => void;
@@ -227,6 +228,7 @@ export interface ServerToClientEvents {
   'lobby:timer_update': (payload: LobbyTimerUpdatePayload) => void;
   'lobby:host_changed': (payload: { newHostId: string }) => void;
   'lobby:game_started': (payload: { gameId: string }) => void;
+  'lobby:kicked': (payload: { reason?: string }) => void;
   'lobby:error': (payload: LobbyErrorPayload) => void;
 
   'matchmaking:match_found': (payload: MatchmakingMatchFoundPayload) => void;

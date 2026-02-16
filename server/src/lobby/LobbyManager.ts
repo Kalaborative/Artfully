@@ -10,6 +10,7 @@ import type {
   ServerToClientEvents
 } from '@artfully/shared';
 import { LOBBY_CONFIG } from '@artfully/shared';
+import { databases, DATABASE_ID, COLLECTIONS, Query } from '../lib/appwrite.js';
 
 interface InternalLobby {
   id: string;
@@ -35,6 +36,21 @@ export class LobbyManager {
 
   constructor(io: Server<ClientToServerEvents, ServerToClientEvents>) {
     this.io = io;
+  }
+
+  private async getWorldRank(userId: string): Promise<number | undefined> {
+    try {
+      const stats = await databases.listDocuments(DATABASE_ID, COLLECTIONS.USER_STATISTICS, [
+        Query.equal('userId', userId),
+        Query.limit(1)
+      ]);
+      if (stats.documents.length > 0 && stats.documents[0].worldRank) {
+        return stats.documents[0].worldRank as number;
+      }
+    } catch (error) {
+      console.error(`[LobbyManager] Failed to fetch worldRank for ${userId}:`, error);
+    }
+    return undefined;
   }
 
   private generateCode(): string {
@@ -65,12 +81,15 @@ export class LobbyManager {
 
     const lobbyId = this.generateId();
 
+    const worldRank = await this.getWorldRank(socket.userId);
+
     const hostPlayer: LobbyPlayer = {
       userId: socket.userId,
       username: socket.profile.username,
       displayName: socket.profile.displayName || socket.profile.username,
       avatarUrl: socket.profile.avatarUrl,
       countryCode: socket.profile.countryCode,
+      worldRank,
       isHost: true,
       isReady: true,
       joinedAt: new Date().toISOString()
@@ -117,12 +136,15 @@ export class LobbyManager {
     // Remove from any existing lobby
     this.leaveLobby(socket);
 
+    const worldRank = await this.getWorldRank(socket.userId);
+
     const player: LobbyPlayer = {
       userId: socket.userId,
       username: socket.profile.username,
       displayName: socket.profile.displayName || socket.profile.username,
       avatarUrl: socket.profile.avatarUrl,
       countryCode: socket.profile.countryCode,
+      worldRank,
       isHost: false,
       isReady: false,
       joinedAt: new Date().toISOString()
@@ -293,6 +315,55 @@ export class LobbyManager {
 
     this.deleteLobby(lobby);
     console.log(`[LobbyManager] Closed lobby ${lobby.code} (${lobbyId})`);
+  }
+
+  kickPlayer(hostSocket: AuthenticatedSocket, targetUserId: string): { kicked: boolean; username?: string; error?: string } {
+    if (!hostSocket.userId) return { kicked: false, error: 'Not authenticated' };
+
+    const lobbyId = this.playerLobby.get(hostSocket.userId);
+    if (!lobbyId) return { kicked: false, error: 'Not in a lobby' };
+
+    const lobby = this.lobbies.get(lobbyId);
+    if (!lobby) return { kicked: false, error: 'Lobby not found' };
+
+    if (lobby.hostId !== hostSocket.userId) return { kicked: false, error: 'Only the host can kick players' };
+    if (targetUserId === hostSocket.userId) return { kicked: false, error: 'Cannot kick yourself' };
+
+    const targetPlayer = lobby.players.get(targetUserId);
+    if (!targetPlayer) return { kicked: false, error: 'Player not in lobby' };
+
+    const username = targetPlayer.username;
+
+    // Remove target from lobby
+    lobby.players.delete(targetUserId);
+    this.playerLobby.delete(targetUserId);
+
+    // Find target's socket and leave the room
+    const targetSocket = this.getPlayerSocket(targetUserId);
+    if (targetSocket) {
+      targetSocket.leave(`lobby:${lobbyId}`);
+      targetSocket.emit('lobby:kicked', { reason: 'You were kicked by the host' });
+    }
+
+    // Notify remaining players
+    this.io.to(`lobby:${lobbyId}`).emit('lobby:player_left', { userId: targetUserId });
+
+    // Check if timer should stop
+    if (lobby.players.size < lobby.minPlayers && lobby.timerInterval) {
+      this.stopTimer(lobby);
+    }
+
+    return { kicked: true, username };
+  }
+
+  private getPlayerSocket(userId: string): any {
+    const sockets = this.io.sockets.sockets;
+    for (const [, socket] of sockets) {
+      if ((socket as any).userId === userId) {
+        return socket;
+      }
+    }
+    return null;
   }
 
   handleDisconnect(socket: AuthenticatedSocket): void {

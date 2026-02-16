@@ -93,4 +93,18 @@ export function setupLobbyHandlers(
     if (!socket.userId) return;
     lobbyManager.setPlayerReady(socket.userId, ready);
   });
+
+  socket.on('lobby:kick', (targetUserId: string) => {
+    if (!socket.userId) return;
+
+    // Try game kick first (game takes priority since lobby data may be stale)
+    const gameKicked = gameManager.kickPlayer(socket.userId, targetUserId);
+    if (gameKicked) return;
+
+    // Try lobby kick
+    const lobbyResult = lobbyManager.kickPlayer(socket, targetUserId);
+    if (!lobbyResult.kicked) {
+      socket.emit('lobby:error', { message: lobbyResult.error || 'Cannot kick this player' });
+    }
+  });
 }
