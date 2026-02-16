@@ -44,8 +44,8 @@ export class LobbyManager {
         Query.equal('userId', userId),
         Query.limit(1)
       ]);
-      if (stats.documents.length > 0 && stats.documents[0].worldRank) {
-        return stats.documents[0].worldRank as number;
+      if (stats.documents.length > 0 && (stats.documents[0] as any).worldRank) {
+        return (stats.documents[0] as any).worldRank as number;
       }
     } catch (error) {
       console.error(`[LobbyManager] Failed to fetch worldRank for ${userId}:`, error);
