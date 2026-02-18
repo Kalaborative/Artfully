@@ -9,6 +9,7 @@ const envSchema = z.object({
   APPWRITE_PROJECT_ID: z.string().min(1),
   APPWRITE_API_KEY: z.string().min(1),
   APPWRITE_DATABASE_ID: z.string().default('artfully'),
+  ADMIN_USER_IDS: z.string().default(''),
 });
 
 export type Env = z.infer<typeof envSchema>;

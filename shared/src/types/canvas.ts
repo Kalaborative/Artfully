@@ -41,6 +41,7 @@ export interface FillData {
   point: Point;
   color: string;
   tolerance?: number;
+  fillId?: string;
 }
 
 export interface FillAction {

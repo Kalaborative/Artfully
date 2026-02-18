@@ -50,7 +50,7 @@ export class GameRoom {
   private roundTimer: NodeJS.Timeout | null = null;
   private wordSelectionTimer: NodeJS.Timeout | null = null;
   private roundGuessers: RoundGuesser[] = [];
-  private strokes: string[] = [];
+  private actions: string[] = [];
   private pointCalculator: PointCalculator;
   private hostId: string;
   private isEnded: boolean = false;
@@ -128,7 +128,7 @@ export class GameRoom {
 
     // Reset round state
     this.roundGuessers = [];
-    this.strokes = [];
+    this.actions = [];
     this.roundState = null;
 
     // Get current drawer
@@ -643,15 +643,19 @@ export class GameRoom {
 
   // Canvas methods
   addStroke(strokeId: string): void {
-    this.strokes.push(strokeId);
+    this.actions.push(strokeId);
+  }
+
+  addAction(actionId: string): void {
+    this.actions.push(actionId);
   }
 
   clearCanvas(): void {
-    this.strokes = [];
+    this.actions = [];
   }
 
-  undoStroke(): string | null {
-    return this.strokes.pop() || null;
+  undoAction(): string | null {
+    return this.actions.pop() || null;
   }
 
   broadcastCanvasEvent(

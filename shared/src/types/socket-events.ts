@@ -140,7 +140,8 @@ export interface CanvasClearPayload {
 
 export interface CanvasUndoPayload {
   userId: string;
-  strokeId: string;
+  actionId: string;
+  strokeId?: string;
 }
 
 export interface CanvasStatePayload {

@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { account } from '../lib/appwrite';
 import CreateLobbyModal from '../components/lobby/CreateLobbyModal';
 import MatchmakingModal from '../components/lobby/MatchmakingModal';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Avatar from '../components/ui/Avatar';
+import AnnouncementModal from '../components/ui/AnnouncementModal';
 import type { GameMode } from '@artfully/shared';
 import {
   Play,
@@ -19,7 +21,8 @@ import {
   Palette,
   Users,
   ChevronRight,
-  PenTool
+  PenTool,
+  MessageSquare
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -28,6 +31,10 @@ export default function DashboardPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [showMatchmaking, setShowMatchmaking] = useState(false);
   const [matchmakingMode, setMatchmakingMode] = useState<GameMode>('normal');
+  const [feedbackType, setFeedbackType] = useState<'bug' | 'feedback' | 'suggestion'>('feedback');
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+  const [feedbackStatus, setFeedbackStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const handleCreated = (code: string) => {
     setShowCreate(false);
@@ -42,6 +49,42 @@ export default function DashboardPage() {
   const startMatchmaking = (mode: GameMode) => {
     setMatchmakingMode(mode);
     setShowMatchmaking(true);
+  };
+
+  const handleFeedbackSubmit = async () => {
+    if (!feedbackMessage.trim()) return;
+
+    setFeedbackSubmitting(true);
+    setFeedbackStatus(null);
+
+    try {
+      const serverUrl = import.meta.env.VITE_SERVER_URL || '';
+      const jwt = await account.createJWT();
+      const res = await fetch(`${serverUrl}/api/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${jwt.jwt}`,
+        },
+        body: JSON.stringify({
+          type: feedbackType,
+          message: feedbackMessage.trim(),
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to submit feedback');
+      }
+
+      setFeedbackMessage('');
+      setFeedbackType('feedback');
+      setFeedbackStatus({ type: 'success', message: 'Thanks for your feedback!' });
+    } catch (err: any) {
+      setFeedbackStatus({ type: 'error', message: err.message || 'Failed to submit feedback' });
+    } finally {
+      setFeedbackSubmitting(false);
+    }
   };
 
   const displayName = profile?.displayName || user?.name || 'Player';
@@ -256,6 +299,75 @@ export default function DashboardPage() {
           </div>
         </Card>
       </div>
+
+      {/* Feedback */}
+      <Card className="mt-6">
+        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <MessageSquare className="w-5 h-5 text-primary-500" />
+          Send Us Feedback
+        </h3>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+            <div className="flex gap-2">
+              {([
+                { value: 'bug', label: 'Bug' },
+                { value: 'feedback', label: 'Feedback' },
+                { value: 'suggestion', label: 'Suggestion' },
+              ] as const).map(({ value, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setFeedbackType(value)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    feedbackType === value
+                      ? 'bg-primary-500 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+            <textarea
+              value={feedbackMessage}
+              onChange={(e) => setFeedbackMessage(e.target.value)}
+              placeholder="Tell us what's on your mind..."
+              maxLength={2000}
+              rows={3}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none resize-vertical"
+            />
+            <p className="text-xs text-gray-400 mt-1">{feedbackMessage.length}/2000</p>
+          </div>
+
+          {feedbackStatus && (
+            <div className={`p-3 rounded-lg text-sm ${
+              feedbackStatus.type === 'success'
+                ? 'bg-green-50 text-green-600'
+                : 'bg-red-50 text-red-600'
+            }`}>
+              {feedbackStatus.message}
+            </div>
+          )}
+
+          <Button
+            onClick={handleFeedbackSubmit}
+            isLoading={feedbackSubmitting}
+            disabled={!feedbackMessage.trim() || feedbackSubmitting}
+            leftIcon={<MessageSquare className="w-4 h-4" />}
+          >
+            Submit Feedback
+          </Button>
+        </div>
+      </Card>
+
+      {/* Announcement */}
+      <AnnouncementModal />
 
       {/* Modals */}
       <CreateLobbyModal

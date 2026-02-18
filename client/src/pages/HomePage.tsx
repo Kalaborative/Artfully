@@ -1,17 +1,24 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { account } from '../lib/appwrite';
 import CreateLobbyModal from '../components/lobby/CreateLobbyModal';
 import JoinLobbyModal from '../components/lobby/JoinLobbyModal';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { Palette, Users, Trophy, Sparkles, Plus, Hash, PenTool } from 'lucide-react';
+import AnnouncementModal from '../components/ui/AnnouncementModal';
+import { Palette, Users, Trophy, Sparkles, Plus, Hash, PenTool, MessageSquare } from 'lucide-react';
 
 export default function HomePage() {
   const { isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
+  const [feedbackType, setFeedbackType] = useState<'bug' | 'feedback' | 'suggestion'>('feedback');
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [feedbackEmail, setFeedbackEmail] = useState('');
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+  const [feedbackStatus, setFeedbackStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const handleCreated = (code: string) => {
     setShowCreate(false);
@@ -21,6 +28,47 @@ export default function HomePage() {
   const handleJoined = (code: string) => {
     setShowJoin(false);
     navigate(`/lobby/${code}`);
+  };
+
+  const handleFeedbackSubmit = async () => {
+    if (!feedbackMessage.trim()) return;
+
+    setFeedbackSubmitting(true);
+    setFeedbackStatus(null);
+
+    try {
+      const serverUrl = import.meta.env.VITE_SERVER_URL || '';
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+
+      if (isAuthenticated) {
+        const jwt = await account.createJWT();
+        headers.Authorization = `Bearer ${jwt.jwt}`;
+      }
+
+      const res = await fetch(`${serverUrl}/api/feedback`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          type: feedbackType,
+          message: feedbackMessage.trim(),
+          ...(!isAuthenticated && feedbackEmail.trim() ? { email: feedbackEmail.trim() } : {}),
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to submit feedback');
+      }
+
+      setFeedbackMessage('');
+      setFeedbackEmail('');
+      setFeedbackType('feedback');
+      setFeedbackStatus({ type: 'success', message: 'Thanks for your feedback!' });
+    } catch (err: any) {
+      setFeedbackStatus({ type: 'error', message: err.message || 'Failed to submit feedback' });
+    } finally {
+      setFeedbackSubmitting(false);
+    }
   };
 
   return (
@@ -149,6 +197,91 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Feedback Section */}
+      <section className="bg-gray-50 py-16 px-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-8">
+            <MessageSquare className="w-10 h-10 text-primary-500 mx-auto mb-3" />
+            <h2 className="text-3xl font-bold">Send Us Feedback</h2>
+            <p className="text-gray-600 mt-2">Found a bug? Have a suggestion? Let us know!</p>
+          </div>
+
+          <Card>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                <div className="flex gap-2">
+                  {([
+                    { value: 'bug', label: 'Bug' },
+                    { value: 'feedback', label: 'Feedback' },
+                    { value: 'suggestion', label: 'Suggestion' },
+                  ] as const).map(({ value, label }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setFeedbackType(value)}
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                        feedbackType === value
+                          ? 'bg-primary-500 text-white'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                <textarea
+                  value={feedbackMessage}
+                  onChange={(e) => setFeedbackMessage(e.target.value)}
+                  placeholder="Tell us what's on your mind..."
+                  maxLength={2000}
+                  rows={4}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none resize-vertical"
+                />
+                <p className="text-xs text-gray-400 mt-1">{feedbackMessage.length}/2000</p>
+              </div>
+
+              {!isAuthenticated && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email (optional)</label>
+                  <input
+                    type="email"
+                    value={feedbackEmail}
+                    onChange={(e) => setFeedbackEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">So we can follow up if needed</p>
+                </div>
+              )}
+
+              {feedbackStatus && (
+                <div className={`p-3 rounded-lg text-sm ${
+                  feedbackStatus.type === 'success'
+                    ? 'bg-green-50 text-green-600'
+                    : 'bg-red-50 text-red-600'
+                }`}>
+                  {feedbackStatus.message}
+                </div>
+              )}
+
+              <Button
+                onClick={handleFeedbackSubmit}
+                isLoading={feedbackSubmitting}
+                disabled={!feedbackMessage.trim() || feedbackSubmitting}
+                leftIcon={<MessageSquare className="w-4 h-4" />}
+              >
+                Submit Feedback
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </section>
+
       {/* CTA */}
       {!isAuthenticated && (
         <section className="py-16 px-4 text-center">
@@ -164,6 +297,9 @@ export default function HomePage() {
           </div>
         </section>
       )}
+
+      {/* Announcement */}
+      <AnnouncementModal />
 
       {/* Modals */}
       <CreateLobbyModal

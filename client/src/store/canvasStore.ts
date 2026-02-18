@@ -22,7 +22,7 @@ interface CanvasStoreState {
   // Stroke state
   strokes: Stroke[];
   currentStroke: Stroke | null;
-  undoStack: Stroke[];
+  undoStack: CanvasAction[];
   isDrawing: boolean;
 
   // Fill actions
@@ -48,9 +48,9 @@ interface CanvasStoreState {
   handleRemoteStrokeStart: (strokeId: string, point: Point, style: StrokeStyle) => void;
   handleRemoteStrokeData: (strokeId: string, points: Point[]) => void;
   handleRemoteStrokeEnd: (strokeId: string) => void;
-  handleRemoteFill: (point: Point, color: string) => void;
+  handleRemoteFill: (point: Point, color: string, fillId?: string) => void;
   handleRemoteClear: () => void;
-  handleRemoteUndo: (strokeId: string) => void;
+  handleRemoteUndo: (actionId: string) => void;
 
   setupListeners: () => () => void;
   reset: () => void;
@@ -195,7 +195,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     set({ fillActions: [...fillActions, fillAction], undoStack: [] });
 
     const socket = getSocket();
-    socket.emit('canvas:fill', { point, color });
+    socket.emit('canvas:fill', { point, color, fillId });
   },
 
   clear: () => {
@@ -206,28 +206,48 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
   },
 
   undo: () => {
-    const { strokes, undoStack } = get();
-    if (strokes.length === 0) return;
+    const { strokes, fillActions, undoStack } = get();
+    if (strokes.length === 0 && fillActions.length === 0) return;
 
-    const lastStroke = strokes[strokes.length - 1];
-    set({
-      strokes: strokes.slice(0, -1),
-      undoStack: [...undoStack, lastStroke]
-    });
+    const lastStroke = strokes.length > 0 ? strokes[strokes.length - 1] : null;
+    const lastFill = fillActions.length > 0 ? fillActions[fillActions.length - 1] : null;
+
+    // Determine which action was most recent by timestamp
+    const undoFill = lastFill && (!lastStroke || lastFill.timestamp >= lastStroke.timestamp);
+
+    if (undoFill && lastFill) {
+      set({
+        fillActions: fillActions.slice(0, -1),
+        undoStack: [...undoStack, lastFill]
+      });
+    } else if (lastStroke) {
+      set({
+        strokes: strokes.slice(0, -1),
+        undoStack: [...undoStack, lastStroke]
+      });
+    }
 
     const socket = getSocket();
     socket.emit('canvas:undo');
   },
 
   redo: () => {
-    const { strokes, undoStack } = get();
+    const { strokes, fillActions, undoStack } = get();
     if (undoStack.length === 0) return;
 
-    const strokeToRedo = undoStack[undoStack.length - 1];
-    set({
-      strokes: [...strokes, strokeToRedo],
-      undoStack: undoStack.slice(0, -1)
-    });
+    const actionToRedo = undoStack[undoStack.length - 1];
+
+    if ('type' in actionToRedo && actionToRedo.type === 'fill') {
+      set({
+        fillActions: [...fillActions, actionToRedo as FillAction],
+        undoStack: undoStack.slice(0, -1)
+      });
+    } else {
+      set({
+        strokes: [...strokes, actionToRedo as Stroke],
+        undoStack: undoStack.slice(0, -1)
+      });
+    }
   },
 
   // Remote event handlers
@@ -263,12 +283,12 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     // Stroke is already in strokes array
   },
 
-  handleRemoteFill: (point: Point, color: string) => {
+  handleRemoteFill: (point: Point, color: string, fillId?: string) => {
     const { fillActions } = get();
-    const fillId = generateFillId();
+    const id = fillId || generateFillId();
 
     const fillAction: FillAction = {
-      id: fillId,
+      id,
       type: 'fill',
       point,
       color,
@@ -282,9 +302,13 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     set({ strokes: [], fillActions: [], undoStack: [] });
   },
 
-  handleRemoteUndo: (strokeId: string) => {
-    const { strokes } = get();
-    set({ strokes: strokes.filter(s => s.id !== strokeId) });
+  handleRemoteUndo: (actionId: string) => {
+    const { strokes, fillActions } = get();
+    if (actionId.startsWith('fill_')) {
+      set({ fillActions: fillActions.filter(f => f.id !== actionId) });
+    } else {
+      set({ strokes: strokes.filter(s => s.id !== actionId) });
+    }
   },
 
   setupListeners: () => {
@@ -310,16 +334,16 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       handleRemoteStrokeEnd(strokeId);
     });
 
-    socket.on('canvas:fill', ({ point, color }) => {
-      handleRemoteFill(point, color);
+    socket.on('canvas:fill', ({ point, color, fillId }: any) => {
+      handleRemoteFill(point, color, fillId);
     });
 
     socket.on('canvas:clear', () => {
       handleRemoteClear();
     });
 
-    socket.on('canvas:undo', ({ strokeId }) => {
-      handleRemoteUndo(strokeId);
+    socket.on('canvas:undo', ({ actionId, strokeId }) => {
+      handleRemoteUndo(actionId || strokeId || '');
     });
 
     socket.on('canvas:state', ({ strokes }) => {

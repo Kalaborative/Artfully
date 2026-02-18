@@ -5,6 +5,8 @@ import userRoutes from './routes/users.js';
 import leaderboardRoutes from './routes/leaderboard.js';
 import wordRoutes from './routes/words.js';
 import drawingRoutes from './routes/drawings.js';
+import announcementRoutes from './routes/announcements.js';
+import feedbackRoutes from './routes/feedback.js';
 
 const app = express();
 
@@ -26,6 +28,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/words', wordRoutes);
 app.use('/api/drawings', drawingRoutes);
+app.use('/api/announcements', announcementRoutes);
+app.use('/api/feedback', feedbackRoutes);
 
 // Error handling
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {

@@ -69,6 +69,10 @@ export function setupCanvasHandlers(
 
     if (game.getCurrentDrawerId() !== socket.userId) return;
 
+    if (data.fillId) {
+      game.addAction(data.fillId);
+    }
+
     game.broadcastCanvasEvent('canvas:fill', {
       ...data,
       userId: socket.userId
@@ -98,11 +102,12 @@ export function setupCanvasHandlers(
 
     if (game.getCurrentDrawerId() !== socket.userId) return;
 
-    const strokeId = game.undoStroke();
-    if (strokeId) {
+    const actionId = game.undoAction();
+    if (actionId) {
       game.broadcastCanvasEvent('canvas:undo', {
         userId: socket.userId,
-        strokeId
+        actionId,
+        strokeId: actionId
       }, socket.userId);
     }
   });

@@ -77,7 +77,7 @@ export default function CanvasToolbar({ onReplay, onSave, isSaving, saveLabel }:
       <div className="flex gap-1">
         <button
           onClick={undo}
-          disabled={strokes.length === 0}
+          disabled={strokes.length === 0 && fillActions.length === 0}
           title="Undo"
           className="p-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
