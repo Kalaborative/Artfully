@@ -25,9 +25,34 @@ import {
   MessageSquare,
   Eye,
   EyeOff,
+  CheckSquare,
+  Square,
+  Plus,
+  X,
 } from 'lucide-react';
 
 const ADMIN_IDS = (import.meta.env.VITE_ADMIN_USER_IDS || '').split(',').map((s: string) => s.trim()).filter(Boolean);
+
+interface TodoItem {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
+const TODO_STORAGE_KEY = 'artfully-admin-todos';
+
+function loadTodos(): TodoItem[] {
+  try {
+    const raw = localStorage.getItem(TODO_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveTodos(todos: TodoItem[]) {
+  localStorage.setItem(TODO_STORAGE_KEY, JSON.stringify(todos));
+}
 
 interface Announcement {
   id: string;
@@ -117,6 +142,28 @@ export default function AdminPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [todos, setTodos] = useState<TodoItem[]>(loadTodos);
+  const [newTodo, setNewTodo] = useState('');
+
+  const addTodo = () => {
+    if (!newTodo.trim()) return;
+    const updated = [...todos, { id: Date.now().toString(), text: newTodo.trim(), done: false }];
+    setTodos(updated);
+    saveTodos(updated);
+    setNewTodo('');
+  };
+
+  const toggleTodo = (id: string) => {
+    const updated = todos.map((t) => (t.id === id ? { ...t, done: !t.done } : t));
+    setTodos(updated);
+    saveTodos(updated);
+  };
+
+  const removeTodo = (id: string) => {
+    const updated = todos.filter((t) => t.id !== id);
+    setTodos(updated);
+    saveTodos(updated);
+  };
 
   const isAdmin = user && ADMIN_IDS.includes(user.$id);
 
@@ -247,6 +294,56 @@ export default function AdminPage() {
           <p className="text-gray-500">Compose and manage announcements</p>
         </div>
       </div>
+
+      {/* To-Do List */}
+      <Card className="mb-8">
+        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+          <CheckSquare className="w-5 h-5 text-primary-500" />
+          To-Do
+        </h2>
+
+        <div className="flex gap-2 mb-4">
+          <input
+            type="text"
+            value={newTodo}
+            onChange={(e) => setNewTodo(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && addTodo()}
+            placeholder="Add a task..."
+            maxLength={200}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm"
+          />
+          <button
+            onClick={addTodo}
+            disabled={!newTodo.trim()}
+            className="px-3 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
+
+        {todos.length === 0 ? (
+          <p className="text-gray-400 text-sm text-center py-2">No tasks yet. Add one above!</p>
+        ) : (
+          <ul className="space-y-2">
+            {todos.map((todo) => (
+              <li key={todo.id} className="flex items-center gap-3 group">
+                <button onClick={() => toggleTodo(todo.id)} className="shrink-0 text-gray-400 hover:text-primary-500 transition-colors">
+                  {todo.done ? <CheckSquare className="w-5 h-5 text-primary-500" /> : <Square className="w-5 h-5" />}
+                </button>
+                <span className={`flex-1 text-sm ${todo.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                  {todo.text}
+                </span>
+                <button
+                  onClick={() => removeTodo(todo.id)}
+                  className="shrink-0 p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-red-50 text-gray-400 hover:text-red-500 transition-all"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
 
       {/* Compose Announcement */}
       <Card className="mb-8">
