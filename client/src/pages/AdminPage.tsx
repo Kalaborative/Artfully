@@ -249,8 +249,6 @@ export default function AdminPage() {
   const closeWidget = (id: string) => setWidgetState(id, 'closed');
   const openWidget = (id: string) => setWidgetState(id, 'normal');
 
-  const closedWidgets = Object.entries(widgetStates).filter(([, s]) => s === 'closed');
-
   const widgetMeta: Record<string, { label: string; icon: React.ReactNode }> = {
     todo: { label: 'To-Do', icon: <ListTodo className="w-4 h-4" /> },
     compose: { label: 'New Announcement', icon: <Megaphone className="w-4 h-4" /> },
