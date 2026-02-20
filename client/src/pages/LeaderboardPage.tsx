@@ -79,21 +79,17 @@ export default function LeaderboardPage() {
                     <div className={`w-8 text-center ${config.color}`}>
                       {globalRank < 3 ? config.icon : entry.rank}
                     </div>
-                    <Avatar src={entry.avatarUrl} alt={entry.displayName} />
+                    <Avatar src={entry.avatarUrl} alt={entry.username} />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         {entry.countryCode && (
                           <CountryFlag code={entry.countryCode} size={20} />
                         )}
-                        <span className="font-semibold">{entry.displayName}</span>
+                        <span className="font-semibold">{entry.username}</span>
                       </div>
-                      <div className="text-sm text-gray-500">@{entry.username}</div>
                     </div>
                     <div className="text-right">
-                      <div className="font-bold text-primary-500">{entry.totalPoints.toLocaleString()}</div>
-                      <div className="text-sm text-gray-500">
-                        {entry.gamesPlayed} games • {entry.winRate.toFixed(0)}% win
-                      </div>
+                      <div className="font-bold text-primary-500">{entry.totalPoints}</div>
                     </div>
                   </Link>
                 );

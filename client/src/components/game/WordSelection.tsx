@@ -14,21 +14,18 @@ const difficultyConfig = {
     color: 'text-green-500',
     bgColor: 'bg-green-50 hover:bg-green-100 border-green-200',
     label: 'Easy',
-    points: '60%',
   },
   medium: {
     icon: <Sparkles className="w-6 h-6" />,
     color: 'text-yellow-500',
     bgColor: 'bg-yellow-50 hover:bg-yellow-100 border-yellow-200',
     label: 'Medium',
-    points: '80%',
   },
   hard: {
     icon: <Zap className="w-6 h-6" />,
     color: 'text-red-500',
     bgColor: 'bg-red-50 hover:bg-red-100 border-red-200',
     label: 'Hard',
-    points: '100%',
   },
 };
 
@@ -84,7 +81,6 @@ export default function WordSelection({ choices }: WordSelectionProps) {
                   </div>
                   <div className="text-right">
                     <div className={`font-semibold ${config.color}`}>{config.label}</div>
-                    <div className="text-sm text-gray-500">{config.points} points</div>
                   </div>
                 </div>
               </button>

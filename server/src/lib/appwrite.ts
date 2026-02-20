@@ -24,6 +24,8 @@ export const COLLECTIONS = {
   SAVED_DRAWINGS: 'saved_drawings',
   ANNOUNCEMENTS: 'announcements',
   FEEDBACK: 'feedback',
+  WALL_MESSAGES: 'wall_messages',
+  NOTIFICATIONS: 'notifications',
 } as const;
 
 export const BUCKETS = {

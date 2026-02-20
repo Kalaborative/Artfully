@@ -22,6 +22,8 @@ export const COLLECTIONS = {
   GAME_ROUNDS: 'game_rounds',
   SAVED_DRAWINGS: 'saved_drawings',
   ANNOUNCEMENTS: 'announcements',
+  WALL_MESSAGES: 'wall_messages',
+  NOTIFICATIONS: 'notifications',
 } as const;
 
 export const BUCKETS = {

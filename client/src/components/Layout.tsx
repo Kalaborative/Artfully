@@ -1,6 +1,7 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { Palette, User, LogOut, Trophy, Home } from 'lucide-react';
+import { Palette, User, LogOut } from 'lucide-react';
+import NotificationBell from './ui/NotificationBell';
 
 export default function Layout() {
   const { isAuthenticated, user, profile, logout } = useAuthStore();
@@ -22,23 +23,9 @@ export default function Layout() {
             </Link>
 
             <nav className="flex items-center gap-4">
-              <Link
-                to="/"
-                className="flex items-center gap-1 text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <Home className="w-5 h-5" />
-                <span className="hidden sm:inline">Home</span>
-              </Link>
-              <Link
-                to="/leaderboard"
-                className="flex items-center gap-1 text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <Trophy className="w-5 h-5" />
-                <span className="hidden sm:inline">Leaderboard</span>
-              </Link>
-
               {isAuthenticated ? (
                 <>
+                  <NotificationBell />
                   <Link
                     to="/profile"
                     className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"

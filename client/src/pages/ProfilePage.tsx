@@ -8,6 +8,7 @@ import AvatarUploader from '../components/profile/AvatarUploader';
 import CountrySelector, { CountryFlag } from '../components/profile/CountrySelector';
 import DrawingGallery from '../components/profile/DrawingGallery';
 import { User, Trophy, Target, Award, Edit2, Save, X, AlertCircle } from 'lucide-react';
+import MessageWall from '../components/profile/MessageWall';
 import type { SavedDrawing } from '@artfully/shared';
 
 export default function ProfilePage() {
@@ -296,6 +297,11 @@ export default function ProfilePage() {
           isOwner={true}
           onDelete={handleDeleteDrawing}
         />
+      </div>
+
+      {/* Message Wall */}
+      <div className="mt-6">
+        <MessageWall profileUserId={profile.userId} isOwner={true} />
       </div>
     </div>
   );

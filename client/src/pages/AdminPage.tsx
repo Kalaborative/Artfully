@@ -9,7 +9,6 @@ import TextAlign from '@tiptap/extension-text-align';
 import Color from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
 import Button from '../components/ui/Button';
-import Card from '../components/ui/Card';
 import {
   Bold,
   Italic,
@@ -29,6 +28,12 @@ import {
   Square,
   Plus,
   X,
+  Clock,
+  ListTodo,
+  Newspaper,
+  Minus,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
 
 const ADMIN_IDS = (import.meta.env.VITE_ADMIN_USER_IDS || '').split(',').map((s: string) => s.trim()).filter(Boolean);
@@ -133,6 +138,86 @@ function EditorToolbar({ editor }: { editor: ReturnType<typeof useEditor> }) {
   );
 }
 
+type WidgetState = 'normal' | 'minimized' | 'maximized' | 'closed';
+
+function Widget({ title, icon, children, className = '', state, onMinimize, onMaximize, onClose }: {
+  title: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+  state: WidgetState;
+  onMinimize: () => void;
+  onMaximize: () => void;
+  onClose: () => void;
+}) {
+  if (state === 'closed') return null;
+
+  const isMaximized = state === 'maximized';
+  const isMinimized = state === 'minimized';
+
+  return (
+    <div className={`bg-white/70 backdrop-blur-xl rounded-2xl shadow-lg shadow-black/5 border border-white/60 overflow-hidden transition-all duration-300 ${isMaximized ? 'fixed inset-4 z-50 !rounded-2xl' : ''} ${className}`}>
+      {/* Title bar */}
+      <div className="flex items-center justify-between px-4 py-2.5 bg-white/50 border-b border-gray-200/50">
+        <div className="flex items-center gap-2">
+          <span className="text-primary-500">{icon}</span>
+          <span className="text-sm font-semibold text-gray-700">{title}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={onMinimize}
+            className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-gray-200/60 transition-colors group"
+            title="Minimize"
+          >
+            <Minus className="w-3.5 h-3.5 text-gray-500 group-hover:text-gray-700" />
+          </button>
+          <button
+            onClick={onMaximize}
+            className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-gray-200/60 transition-colors group"
+            title={isMaximized ? 'Restore' : 'Maximize'}
+          >
+            {isMaximized
+              ? <Minimize2 className="w-3.5 h-3.5 text-gray-500 group-hover:text-gray-700" />
+              : <Maximize2 className="w-3.5 h-3.5 text-gray-500 group-hover:text-gray-700" />
+            }
+          </button>
+          <button
+            onClick={onClose}
+            className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-red-500 transition-colors group"
+            title="Close"
+          >
+            <X className="w-3.5 h-3.5 text-gray-500 group-hover:text-white" />
+          </button>
+        </div>
+      </div>
+      {/* Content */}
+      {!isMinimized && (
+        <div className={`p-4 ${isMaximized ? 'overflow-y-auto' : ''}`} style={isMaximized ? { maxHeight: 'calc(100vh - 8rem)' } : undefined}>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TaskbarClock() {
+  const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setTime(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="flex items-center gap-2 text-sm text-gray-600">
+      <Clock className="w-4 h-4" />
+      <span>{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+      <span className="text-gray-400">|</span>
+      <span>{time.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
@@ -144,6 +229,34 @@ export default function AdminPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [todos, setTodos] = useState<TodoItem[]>(loadTodos);
   const [newTodo, setNewTodo] = useState('');
+
+  const [widgetStates, setWidgetStates] = useState<Record<string, WidgetState>>({
+    todo: 'normal',
+    compose: 'normal',
+    announcements: 'normal',
+    feedback: 'normal',
+  });
+
+  const setWidgetState = (id: string, state: WidgetState) =>
+    setWidgetStates((prev) => ({ ...prev, [id]: state }));
+
+  const toggleMinimize = (id: string) =>
+    setWidgetState(id, widgetStates[id] === 'minimized' ? 'normal' : 'minimized');
+
+  const toggleMaximize = (id: string) =>
+    setWidgetState(id, widgetStates[id] === 'maximized' ? 'normal' : 'maximized');
+
+  const closeWidget = (id: string) => setWidgetState(id, 'closed');
+  const openWidget = (id: string) => setWidgetState(id, 'normal');
+
+  const closedWidgets = Object.entries(widgetStates).filter(([, s]) => s === 'closed');
+
+  const widgetMeta: Record<string, { label: string; icon: React.ReactNode }> = {
+    todo: { label: 'To-Do', icon: <ListTodo className="w-4 h-4" /> },
+    compose: { label: 'New Announcement', icon: <Megaphone className="w-4 h-4" /> },
+    announcements: { label: 'Announcements', icon: <Newspaper className="w-4 h-4" /> },
+    feedback: { label: 'Feedback', icon: <MessageSquare className="w-4 h-4" /> },
+  };
 
   const addTodo = () => {
     if (!newTodo.trim()) return;
@@ -284,202 +397,270 @@ export default function AdminPage() {
   if (!isAdmin) return null;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-          <Megaphone className="w-6 h-6 text-primary-500" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-500">Compose and manage announcements</p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-sky-100 via-blue-50 to-indigo-100 pb-16">
+      {/* Maximized overlay backdrop */}
+      {Object.values(widgetStates).includes('maximized') && (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40" />
+      )}
 
-      {/* To-Do List */}
-      <Card className="mb-8">
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <CheckSquare className="w-5 h-5 text-primary-500" />
-          To-Do
-        </h2>
-
-        <div className="flex gap-2 mb-4">
-          <input
-            type="text"
-            value={newTodo}
-            onChange={(e) => setNewTodo(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addTodo()}
-            placeholder="Add a task..."
-            maxLength={200}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm"
-          />
-          <button
-            onClick={addTodo}
-            disabled={!newTodo.trim()}
-            className="px-3 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-        </div>
-
-        {todos.length === 0 ? (
-          <p className="text-gray-400 text-sm text-center py-2">No tasks yet. Add one above!</p>
-        ) : (
-          <ul className="space-y-2">
-            {todos.map((todo) => (
-              <li key={todo.id} className="flex items-center gap-3 group">
-                <button onClick={() => toggleTodo(todo.id)} className="shrink-0 text-gray-400 hover:text-primary-500 transition-colors">
-                  {todo.done ? <CheckSquare className="w-5 h-5 text-primary-500" /> : <Square className="w-5 h-5" />}
-                </button>
-                <span className={`flex-1 text-sm ${todo.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>
-                  {todo.text}
-                </span>
-                <button
-                  onClick={() => removeTodo(todo.id)}
-                  className="shrink-0 p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-red-50 text-gray-400 hover:text-red-500 transition-all"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
-
-      {/* Compose Announcement */}
-      <Card className="mb-8">
-        <h2 className="text-xl font-semibold mb-4">New Announcement</h2>
-
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Announcement title..."
-              maxLength={255}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
-            <div className="border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent">
-              <EditorToolbar editor={editor} />
-              <EditorContent editor={editor} />
+      {/* Taskbar Header */}
+      <div className="bg-white/60 backdrop-blur-xl border-b border-white/40 shadow-sm sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-primary-500/10 rounded-lg flex items-center justify-center">
+              <Megaphone className="w-5 h-5 text-primary-500" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-gray-800 leading-tight">Admin Dashboard</h1>
+              <p className="text-xs text-gray-500">Compose and manage announcements</p>
             </div>
           </div>
-
-          {error && (
-            <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>
-          )}
-          {success && (
-            <div className="p-3 bg-green-50 text-green-600 rounded-lg text-sm">{success}</div>
-          )}
-
-          <Button
-            onClick={handleSubmit}
-            isLoading={isSubmitting}
-            disabled={!title.trim() || isSubmitting}
-            leftIcon={<Megaphone className="w-4 h-4" />}
-          >
-            Send Announcement
-          </Button>
+          <TaskbarClock />
         </div>
-      </Card>
-
-      {/* Previous Announcements */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Previous Announcements</h2>
-
-        {announcements.length === 0 ? (
-          <Card>
-            <p className="text-gray-500 text-center py-4">No announcements yet.</p>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {announcements.map((a) => (
-              <Card key={a.id} className="relative">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-lg">{a.title}</h3>
-                      {a.isActive && (
-                        <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
-                          Active
-                        </span>
-                      )}
-                    </div>
-                    <div
-                      className="prose prose-sm max-w-none text-gray-600"
-                      dangerouslySetInnerHTML={{ __html: a.content }}
-                    />
-                    <p className="text-xs text-gray-400 mt-3">
-                      {new Date(a.createdAt).toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
       </div>
 
-      {/* User Feedback */}
-      <div className="mt-12">
-        <div className="flex items-center gap-3 mb-4">
-          <MessageSquare className="w-5 h-5 text-primary-500" />
-          <h2 className="text-xl font-semibold">User Feedback</h2>
-        </div>
+      {/* Desktop Grid */}
+      <div className="max-w-7xl mx-auto px-6 py-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Left Column */}
+          <div className="space-y-6">
+            {/* To-Do Widget */}
+            <Widget
+              title="To-Do"
+              icon={<ListTodo className="w-4 h-4" />}
+              state={widgetStates.todo}
+              onMinimize={() => toggleMinimize('todo')}
+              onMaximize={() => toggleMaximize('todo')}
+              onClose={() => closeWidget('todo')}
+            >
+              <div className="flex gap-2 mb-4">
+                <input
+                  type="text"
+                  value={newTodo}
+                  onChange={(e) => setNewTodo(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && addTodo()}
+                  placeholder="Add a task..."
+                  maxLength={200}
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm bg-white/80"
+                />
+                <button
+                  onClick={addTodo}
+                  disabled={!newTodo.trim()}
+                  className="px-3 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
 
-        {feedbackList.length === 0 ? (
-          <Card>
-            <p className="text-gray-500 text-center py-4">No feedback yet.</p>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {feedbackList.map((f) => (
-              <Card
-                key={f.id}
-                className={`relative ${!f.isRead ? 'border-l-4 border-l-primary-500 bg-primary-50/30' : ''}`}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                        f.type === 'bug'
-                          ? 'bg-red-100 text-red-700'
-                          : f.type === 'suggestion'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {f.type.charAt(0).toUpperCase() + f.type.slice(1)}
+              {todos.length === 0 ? (
+                <p className="text-gray-400 text-sm text-center py-2">No tasks yet. Add one above!</p>
+              ) : (
+                <ul className="space-y-2">
+                  {todos.map((todo) => (
+                    <li key={todo.id} className="flex items-center gap-3 group">
+                      <button onClick={() => toggleTodo(todo.id)} className="shrink-0 text-gray-400 hover:text-primary-500 transition-colors">
+                        {todo.done ? <CheckSquare className="w-5 h-5 text-primary-500" /> : <Square className="w-5 h-5" />}
+                      </button>
+                      <span className={`flex-1 text-sm ${todo.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                        {todo.text}
                       </span>
-                      {!f.isRead && (
-                        <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">
-                          New
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-gray-700 whitespace-pre-wrap">{f.message}</p>
-                    <div className="flex items-center gap-3 mt-3 text-xs text-gray-400">
-                      <span>{new Date(f.createdAt).toLocaleString()}</span>
-                      {f.userId && <span>User: {f.userId}</span>}
-                      {f.email && <span>Email: {f.email}</span>}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => toggleFeedbackRead(f.id)}
-                    className="shrink-0 p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-500"
-                    title={f.isRead ? 'Mark as unread' : 'Mark as read'}
-                  >
-                    {f.isRead ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+                      <button
+                        onClick={() => removeTodo(todo.id)}
+                        className="shrink-0 p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-red-50 text-gray-400 hover:text-red-500 transition-all"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Widget>
+
+            {/* New Announcement Widget */}
+            <Widget
+              title="New Announcement"
+              icon={<Megaphone className="w-4 h-4" />}
+              state={widgetStates.compose}
+              onMinimize={() => toggleMinimize('compose')}
+              onMaximize={() => toggleMaximize('compose')}
+              onClose={() => closeWidget('compose')}
+            >
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                  <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Announcement title..."
+                    maxLength={255}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white/80"
+                  />
                 </div>
-              </Card>
-            ))}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
+                  <div className="border border-gray-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent bg-white/80">
+                    <EditorToolbar editor={editor} />
+                    <EditorContent editor={editor} />
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>
+                )}
+                {success && (
+                  <div className="p-3 bg-green-50 text-green-600 rounded-lg text-sm">{success}</div>
+                )}
+
+                <Button
+                  onClick={handleSubmit}
+                  isLoading={isSubmitting}
+                  disabled={!title.trim() || isSubmitting}
+                  leftIcon={<Megaphone className="w-4 h-4" />}
+                >
+                  Send Announcement
+                </Button>
+              </div>
+            </Widget>
           </div>
-        )}
+
+          {/* Right Column */}
+          <div className="space-y-6">
+            {/* Previous Announcements Widget */}
+            <Widget
+              title="Previous Announcements"
+              icon={<Newspaper className="w-4 h-4" />}
+              state={widgetStates.announcements}
+              onMinimize={() => toggleMinimize('announcements')}
+              onMaximize={() => toggleMaximize('announcements')}
+              onClose={() => closeWidget('announcements')}
+            >
+              {announcements.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">No announcements yet.</p>
+              ) : (
+                <div className="space-y-4">
+                  {announcements.map((a) => (
+                    <div key={a.id} className="p-3 bg-white/60 rounded-xl border border-gray-100">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-semibold text-lg">{a.title}</h3>
+                            {a.isActive && (
+                              <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                                Active
+                              </span>
+                            )}
+                          </div>
+                          <div
+                            className="prose prose-sm max-w-none text-gray-600"
+                            dangerouslySetInnerHTML={{ __html: a.content }}
+                          />
+                          <p className="text-xs text-gray-400 mt-3">
+                            {new Date(a.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Widget>
+
+            {/* User Feedback Widget */}
+            <Widget
+              title="User Feedback"
+              icon={<MessageSquare className="w-4 h-4" />}
+              state={widgetStates.feedback}
+              onMinimize={() => toggleMinimize('feedback')}
+              onMaximize={() => toggleMaximize('feedback')}
+              onClose={() => closeWidget('feedback')}
+            >
+              {feedbackList.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">No feedback yet.</p>
+              ) : (
+                <div className="space-y-4">
+                  {feedbackList.map((f) => (
+                    <div
+                      key={f.id}
+                      className={`p-3 rounded-xl border ${!f.isRead ? 'border-l-4 border-l-primary-500 bg-primary-50/30 border-gray-100' : 'bg-white/60 border-gray-100'}`}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                              f.type === 'bug'
+                                ? 'bg-red-100 text-red-700'
+                                : f.type === 'suggestion'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-blue-100 text-blue-700'
+                            }`}>
+                              {f.type.charAt(0).toUpperCase() + f.type.slice(1)}
+                            </span>
+                            {!f.isRead && (
+                              <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">
+                                New
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-gray-700 whitespace-pre-wrap">{f.message}</p>
+                          <div className="flex items-center gap-3 mt-3 text-xs text-gray-400">
+                            <span>{new Date(f.createdAt).toLocaleString()}</span>
+                            {f.userId && <span>User: {f.userId}</span>}
+                            {f.email && <span>Email: {f.email}</span>}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => toggleFeedbackRead(f.id)}
+                          className="shrink-0 p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-500"
+                          title={f.isRead ? 'Mark as unread' : 'Mark as read'}
+                        >
+                          {f.isRead ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Widget>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Taskbar */}
+      <div className="fixed bottom-0 left-0 right-0 z-30 bg-white/70 backdrop-blur-xl border-t border-white/40 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+        <div className="max-w-7xl mx-auto px-6 py-2 flex items-center gap-1">
+          {Object.entries(widgetMeta).map(([id, meta]) => {
+            const st = widgetStates[id];
+            const isClosed = st === 'closed';
+            const isActive = st === 'normal' || st === 'maximized';
+            return (
+              <button
+                key={id}
+                onClick={() => {
+                  if (isClosed) {
+                    openWidget(id);
+                  } else if (st === 'minimized') {
+                    setWidgetState(id, 'normal');
+                  } else {
+                    toggleMinimize(id);
+                  }
+                }}
+                title={isClosed ? `Open ${meta.label}` : st === 'minimized' ? `Restore ${meta.label}` : `Minimize ${meta.label}`}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all ${
+                  isActive
+                    ? 'bg-primary-500/10 text-primary-600 font-medium border-b-2 border-primary-500'
+                    : isClosed
+                    ? 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
+                    : 'text-gray-500 hover:bg-gray-100'
+                }`}
+              >
+                <span className={isClosed ? 'opacity-50' : ''}>{meta.icon}</span>
+                <span className="hidden sm:inline">{meta.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

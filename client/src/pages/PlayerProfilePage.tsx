@@ -5,6 +5,8 @@ import Avatar from '../components/ui/Avatar';
 import { CountryFlag } from '../components/profile/CountrySelector';
 import DrawingGallery from '../components/profile/DrawingGallery';
 import { User, Trophy, Target, Award, ArrowLeft, UserX } from 'lucide-react';
+import MessageWall from '../components/profile/MessageWall';
+import { useAuthStore } from '../store/authStore';
 import type { UserProfile, UserStatistics, SavedDrawing } from '@artfully/shared';
 
 function StatBox({ icon, label, value }: { icon: React.ReactNode; label: string; value: number | string }) {
@@ -21,6 +23,7 @@ function StatBox({ icon, label, value }: { icon: React.ReactNode; label: string;
 
 export default function PlayerProfilePage() {
   const { username } = useParams<{ username: string }>();
+  const { user } = useAuthStore();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [statistics, setStatistics] = useState<UserStatistics | null>(null);
   const [drawings, setDrawings] = useState<SavedDrawing[]>([]);
@@ -175,6 +178,14 @@ export default function PlayerProfilePage() {
           <DrawingGallery drawings={drawings} isOwner={false} />
         </div>
       )}
+
+      {/* Message Wall */}
+      <div className="mt-6">
+        <MessageWall
+          profileUserId={profile.userId}
+          isOwner={user?.$id === profile.userId}
+        />
+      </div>
     </div>
   );
 }

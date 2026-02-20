@@ -56,3 +56,29 @@ export interface SavedDrawing {
 }
 
 export const MAX_SAVED_DRAWINGS = 3;
+
+export interface WallMessage {
+  id: string;
+  profileUserId: string;
+  authorUserId: string;
+  authorUsername: string;
+  authorDisplayName: string;
+  authorAvatarUrl?: string;
+  content: string;
+  parentId?: string;
+  replies?: WallMessage[];
+  createdAt: string;
+}
+
+export interface UserNotification {
+  id: string;
+  userId: string;
+  type: 'wall_message' | 'wall_reply';
+  fromUserId: string;
+  fromUsername: string;
+  fromDisplayName: string;
+  referenceId: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+}
