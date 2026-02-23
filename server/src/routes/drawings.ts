@@ -12,6 +12,7 @@ function mapDoc(doc: any) {
     userId: doc.userId,
     imageFileId: doc.imageFileId,
     imageUrl: doc.imageUrl,
+    replayData: doc.replayData ?? undefined,
     createdAt: doc.createdAt,
   };
 }
@@ -67,7 +68,7 @@ router.get('/user/:username', async (req, res) => {
 router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId!;
-    const { imageFileId, imageUrl } = req.body;
+    const { imageFileId, imageUrl, replayData } = req.body;
 
     if (!imageFileId || typeof imageFileId !== 'string') {
       res.status(400).json({ error: 'imageFileId is required' });
@@ -76,6 +77,11 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
 
     if (!imageUrl || typeof imageUrl !== 'string') {
       res.status(400).json({ error: 'imageUrl is required' });
+      return;
+    }
+
+    if (replayData && typeof replayData !== 'string') {
+      res.status(400).json({ error: 'replayData must be a string' });
       return;
     }
 
@@ -92,16 +98,21 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
       return;
     }
 
+    const docData: Record<string, any> = {
+      userId,
+      imageFileId,
+      imageUrl,
+      createdAt: new Date().toISOString(),
+    };
+    if (replayData) {
+      docData.replayData = replayData;
+    }
+
     const doc = await databases.createDocument(
       DATABASE_ID,
       COLLECTIONS.SAVED_DRAWINGS,
       ID.unique(),
-      {
-        userId,
-        imageFileId,
-        imageUrl,
-        createdAt: new Date().toISOString(),
-      }
+      docData
     );
 
     res.status(201).json(mapDoc(doc));
@@ -125,7 +136,7 @@ router.delete('/:id', authMiddleware, async (req: AuthRequest, res: Response) =>
       return;
     }
 
-    // Delete storage file
+    // Delete storage files
     const fileId = (doc as any).imageFileId;
     if (fileId) {
       try {

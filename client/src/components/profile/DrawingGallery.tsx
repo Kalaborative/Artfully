@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import { Palette, Trash2, X } from 'lucide-react';
+import { Palette, Trash2, X, Play } from 'lucide-react';
 import type { SavedDrawing } from '@artfully/shared';
+import type { Stroke, FillAction } from '@artfully/shared';
 import { MAX_SAVED_DRAWINGS } from '@artfully/shared';
 import Card from '../ui/Card';
+import ReplayOverlay from '../canvas/ReplayOverlay';
+import { storage, BUCKETS } from '../../lib/appwrite';
 
 interface DrawingGalleryProps {
   drawings: SavedDrawing[];
@@ -13,6 +16,8 @@ interface DrawingGalleryProps {
 export default function DrawingGallery({ drawings, isOwner, onDelete }: DrawingGalleryProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [replayData, setReplayData] = useState<{ strokes: Stroke[]; fillActions: FillAction[] } | null>(null);
+  const [loadingReplayId, setLoadingReplayId] = useState<string | null>(null);
 
   const handleDelete = async (id: string) => {
     if (!onDelete) return;
@@ -21,6 +26,21 @@ export default function DrawingGallery({ drawings, isOwner, onDelete }: DrawingG
       await onDelete(id);
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleReplay = async (drawing: SavedDrawing) => {
+    if (!drawing.replayData) return;
+    setLoadingReplayId(drawing.id);
+    try {
+      // Decode base64 replay data
+      const decodedJson = atob(drawing.replayData);
+      const data = JSON.parse(decodedJson);
+      setReplayData({ strokes: data.strokes, fillActions: data.fillActions });
+    } catch (err) {
+      console.error('Failed to load replay:', err);
+    } finally {
+      setLoadingReplayId(null);
     }
   };
 
@@ -66,6 +86,17 @@ export default function DrawingGallery({ drawings, isOwner, onDelete }: DrawingG
                 </p>
               </div>
 
+              {drawing.replayData && (
+                <button
+                  onClick={() => handleReplay(drawing)}
+                  disabled={loadingReplayId === drawing.id}
+                  className="absolute top-2 left-2 p-1.5 rounded-full bg-purple-500/80 text-white opacity-0 group-hover:opacity-100 hover:bg-purple-600 transition-all disabled:opacity-50"
+                  title="Replay drawing"
+                >
+                  <Play className="w-3.5 h-3.5" />
+                </button>
+              )}
+
               {isOwner && onDelete && (
                 <button
                   onClick={() => handleDelete(drawing.id)}
@@ -101,6 +132,15 @@ export default function DrawingGallery({ drawings, isOwner, onDelete }: DrawingG
             />
           </div>
         </div>
+      )}
+
+      {/* Replay overlay */}
+      {replayData && (
+        <ReplayOverlay
+          strokes={replayData.strokes}
+          fillActions={replayData.fillActions}
+          onClose={() => setReplayData(null)}
+        />
       )}
     </Card>
   );

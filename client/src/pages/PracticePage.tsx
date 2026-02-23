@@ -70,6 +70,15 @@ export default function PracticePage() {
       const uploaded = await storage.createFile(DRAWING_BUCKET, ID.unique(), file);
       const imageUrl = storage.getFileView(DRAWING_BUCKET, uploaded.$id).toString();
 
+      // Prepare replay data as compressed string
+      let replayData: string | undefined;
+      const { strokes, fillActions } = useCanvasStore.getState();
+      if (strokes.length > 0 || fillActions.length > 0) {
+        const replayJson = JSON.stringify({ strokes, fillActions });
+        // Use compression: btoa for base64 encoding
+        replayData = btoa(replayJson);
+      }
+
       // Save metadata via server API
       const jwt = await account.createJWT();
       const serverUrl = import.meta.env.VITE_SERVER_URL || '';
@@ -80,7 +89,7 @@ export default function PracticePage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${jwt.jwt}`,
         },
-        body: JSON.stringify({ imageFileId: uploaded.$id, imageUrl }),
+        body: JSON.stringify({ imageFileId: uploaded.$id, imageUrl, replayData }),
       });
 
       if (!response.ok) {

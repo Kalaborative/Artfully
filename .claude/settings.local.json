@@ -7,7 +7,9 @@
       "Bash(npx tsc:*)",
       "Bash(node:*)",
       "Bash(npm install:*)",
-      "Bash(npx vite build)"
+      "Bash(npx vite build)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

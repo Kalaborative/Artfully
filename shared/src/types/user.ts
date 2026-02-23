@@ -52,6 +52,7 @@ export interface SavedDrawing {
   userId: string;
   imageFileId: string;
   imageUrl: string;
+  replayData?: string;
   createdAt: string;
 }
 
