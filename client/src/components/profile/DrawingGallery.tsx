@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Palette, Trash2, X, Play } from 'lucide-react';
-import type { SavedDrawing } from '@artfully/shared';
+import type { SavedDrawing, Stroke, FillAction } from '@artfully/shared';
+import { MAX_SAVED_DRAWINGS } from '@artfully/shared';
 import Card from '../ui/Card';
 import ReplayOverlay from '../canvas/ReplayOverlay';
 import { storage, BUCKETS } from '../../lib/appwrite';
