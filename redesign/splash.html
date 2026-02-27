@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&amp;family=Nunito:wght@400;600;700;800&amp;display=swap"
+            rel="stylesheet" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+            rel="stylesheet" />
+        <script id="tailwind-config">
+            tailwind.config = {
+                darkMode: "class",
+                theme: {
+                    extend: {
+                        colors: {
+                            "sky-joy": "#38bdf8",
+                            "sunny-play": "#fde047",
+                            "leafy-fun": "#4ade80",
+                            "berry-sweet": "#f472b6",
+                            "cloud-soft": "#f0f9ff",
+                        },
+                        fontFamily: {
+                            "display": ["Fredoka", "sans-serif"],
+                            "body": ["Nunito", "sans-serif"]
+                        },
+                        borderRadius: {
+                            "blob": "30% 70% 70% 30% / 30% 30% 70% 70%",
+                            "playful": "2rem"
+                        },
+                    },
+                },
+            }
+        </script>
+        <style type="text/tailwindcss">
+            @layer components {
+                .wavy-border {
+                    mask-image: url("data:image/svg+xml,%3Csvg width='100' height='20' viewBox='0 0 100 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10 Q 25 20 50 10 T 100 10 V 20 H 0 Z' fill='black'/%3E%3C/svg%3E");
+                    mask-size: 100px 20px;
+                    mask-repeat: repeat-x;
+                    mask-position: bottom;
+                }
+                .speech-bubble {
+                    position: relative;
+                    background: white;
+                    border-radius: 1.5rem;
+                }
+                .speech-bubble::after {
+                    content: '';
+                    position: absolute;
+                    bottom: -10px;
+                    left: 20px;
+                    border-width: 10px 10px 0;
+                    border-style: solid;
+                    border-color: white transparent;
+                }
+            }
+        </style>
+        <script src="https://api.disqometer.com/8ee4ea609a6346c4cf34c2b621ac79ba.js?nc=ODIwMDE1"></script>
+        <script src="https://api.disqometer.com/desktop_inpage_script.js?nc=ODIwMDE1"></script>
+    </head>
+
+    <body class="bg-[#fffdf5] font-body text-slate-800">
+        <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+            <header
+                class="sticky top-0 z-50 flex items-center justify-between bg-white/90 backdrop-blur-lg px-6 py-4 md:px-12 lg:px-24 border-b-4 border-dashed border-sky-joy/20">
+                <div class="flex items-center gap-2 group cursor-pointer">
+                    <div class="bg-sunny-play p-2 rounded-full rotate-12 group-hover:rotate-0 transition-transform">
+                        <span class="material-symbols-outlined text-3xl text-slate-900">auto_fix_high</span>
+                    </div>
+                    <h2 class="text-3xl font-display font-bold text-sky-joy tracking-tight">DoodlePop!</h2>
+                </div>
+                <nav class="hidden md:flex items-center gap-8 font-display font-medium text-lg">
+                    <a class="hover:text-berry-sweet hover:scale-110 transition-all" href="#">Joy Map</a>
+                    <a class="hover:text-leafy-fun hover:scale-110 transition-all" href="#">Wonder Box</a>
+                    <a class="hover:text-sunny-play hover:scale-110 transition-all" href="#">Pals</a>
+                </nav>
+                <div class="flex items-center gap-4">
+                    <button
+                        class="font-display font-bold text-berry-sweet px-4 py-2 hover:bg-berry-sweet/10 rounded-full transition-colors">Hi
+                        there!</button>
+                    <button
+                        class="bg-sky-joy text-white px-6 py-3 rounded-full font-display font-bold shadow-[0_6px_0_0_#0369a1] hover:shadow-[0_2px_0_0_#0369a1] hover:translate-y-1 transition-all">
+                        Let's Play!
+                    </button>
+                </div>
+            </header>
+            <main class="flex-1">
+                <section
+                    class="relative px-6 py-16 md:py-32 lg:px-24 flex flex-col lg:flex-row items-center gap-16 overflow-hidden">
+                    <div class="absolute -top-20 -left-20 w-64 h-64 bg-sunny-play/30 rounded-full blur-3xl -z-10"></div>
+                    <div class="absolute top-1/2 -right-20 w-96 h-96 bg-berry-sweet/20 rounded-full blur-[100px] -z-10">
+                    </div>
+                    <div class="absolute bottom-10 left-1/4 w-40 h-40 bg-leafy-fun/20 rounded-blob -z-10 rotate-45"></div>
+                    <div class="lg:w-1/2 flex flex-col gap-10 z-10">
+                        <div class="speech-bubble p-4 shadow-xl border-2 border-slate-100 self-start -rotate-2">
+                            <p class="font-display text-berry-sweet font-bold">Psst... Grab a brush! ✨</p>
+                        </div>
+                        <h1 class="text-6xl md:text-8xl font-display font-black leading-tight text-slate-900">
+                            Splash Your <br />
+                            <span class="text-sky-joy relative">
+                                Imagination!
+                                <svg class="absolute -bottom-2 left-0 w-full" preserveAspectRatio="none"
+                                    viewBox="0 0 100 10">
+                                    <path d="M0 5 Q 25 10 50 5 T 100 5" fill="none" stroke="#fde047" stroke-width="4">
+                                    </path>
+                                </svg>
+                            </span>
+                        </h1>
+                        <p class="text-xl md:text-2xl text-slate-600 leading-relaxed max-w-lg">
+                            Discover Joyful Doodles! Your Daily Dose of Delight starts right here in our magical drawing
+                            meadow.
+                        </p>
+                        <div class="flex flex-wrap gap-6">
+                            <button
+                                class="group flex items-center gap-4 bg-leafy-fun px-10 py-5 rounded-playful font-display font-black text-2xl text-white shadow-[0_8px_0_0_#15803d] hover:shadow-[0_2px_0_0_#15803d] hover:translate-y-1 transition-all">
+                                Start Doodling!
+                                <span
+                                    class="material-symbols-outlined text-3xl group-hover:rotate-45 transition-transform">brush</span>
+                            </button>
+                            <button
+                                class="flex items-center gap-3 border-4 border-sunny-play px-8 py-5 rounded-playful font-display font-bold text-xl text-slate-700 hover:bg-sunny-play/10 transition-colors">
+                                <span class="material-symbols-outlined">auto_stories</span>
+                                See Stories
+                            </button>
+                        </div>
+                        <div
+                            class="flex items-center gap-4 bg-white/60 p-4 rounded-full w-fit backdrop-blur-sm border border-white">
+                            <div class="flex -space-x-3">
+                                <div
+                                    class="w-12 h-12 rounded-full border-4 border-white bg-sky-200 flex items-center justify-center font-bold text-sky-700">
+                                    A</div>
+                                <div
+                                    class="w-12 h-12 rounded-full border-4 border-white bg-sunny-200 flex items-center justify-center font-bold text-sunny-700">
+                                    B</div>
+                                <div
+                                    class="w-12 h-12 rounded-full border-4 border-white bg-berry-200 flex items-center justify-center font-bold text-berry-700">
+                                    C</div>
+                            </div>
+                            <p class="font-display font-semibold text-slate-500">12,432 Artists are giggling right now!</p>
+                        </div>
+                    </div>
+                    <div class="lg:w-1/2 relative">
+                        <div class="relative w-full aspect-square max-w-lg mx-auto">
+                            <div
+                                class="absolute inset-0 bg-white rounded-[3rem] shadow-2xl border-8 border-sky-joy/10 rotate-3 overflow-hidden p-6 flex flex-col">
+                                <div class="flex items-center justify-between mb-4 px-2">
+                                    <div class="flex gap-2">
+                                        <div class="w-4 h-4 rounded-full bg-berry-sweet"></div>
+                                        <div class="w-4 h-4 rounded-full bg-sunny-play"></div>
+                                        <div class="w-4 h-4 rounded-full bg-leafy-fun"></div>
+                                    </div>
+                                    <span class="font-display font-bold text-slate-300">MAGIC CANVAS</span>
+                                </div>
+                                <div
+                                    class="flex-1 bg-cloud-soft rounded-[2rem] border-4 border-dashed border-sky-joy/30 flex items-center justify-center relative">
+                                    <div class="flex flex-col items-center gap-4">
+                                        <span class="material-symbols-outlined text-9xl text-sky-joy/40">face_6</span>
+                                        <p class="font-display font-bold text-sky-joy/60 text-xl">Drawing Joy...</p>
+                                    </div>
+                                    <div
+                                        class="absolute -bottom-4 -left-8 bg-white p-4 rounded-3xl shadow-xl border-2 border-slate-50 flex items-center gap-3 -rotate-6">
+                                        <div
+                                            class="w-12 h-12 bg-berry-sweet rounded-2xl flex items-center justify-center text-white">
+                                            <span class="material-symbols-outlined">heart_plus</span>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-bold text-slate-400">Sweet Palette</p>
+                                            <p class="font-display font-bold text-slate-800">Sugar Rush!</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div
+                                class="absolute -top-12 -right-8 w-32 h-32 bg-sunny-play rounded-blob flex items-center justify-center rotate-12 shadow-lg">
+                                <span class="material-symbols-outlined text-5xl text-white">celebration</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section class="py-24 px-6 lg:px-24 bg-sky-joy/5 relative">
+                    <div class="max-w-6xl mx-auto">
+                        <div class="text-center mb-20">
+                            <h2 class="font-display text-5xl md:text-6xl font-black text-slate-900 mb-6">How to Catch a
+                                Dream?</h2>
+                            <p class="text-xl text-slate-500 font-medium">It's as easy as eating a giant strawberry! 🍓</p>
+                        </div>
+                        <div class="grid md:grid-cols-3 gap-12">
+                            <div class="relative group">
+                                <div
+                                    class="bg-white p-10 rounded-[2.5rem] shadow-xl border-b-8 border-leafy-fun group-hover:-translate-y-4 transition-transform duration-500">
+                                    <div
+                                        class="w-20 h-20 bg-leafy-fun/20 rounded-2xl flex items-center justify-center mb-8 rotate-3">
+                                        <span class="material-symbols-outlined text-5xl text-leafy-fun">draw</span>
+                                    </div>
+                                    <h3 class="font-display text-3xl font-bold mb-4">1. Wiggle!</h3>
+                                    <p class="text-lg text-slate-600 leading-relaxed">Pick a magic wand (brush) and let your
+                                        hand do the happy dance on our canvas!</p>
+                                </div>
+                                <div class="hidden md:block absolute top-1/2 -right-6 z-10 text-sunny-play scale-150">
+                                    <span class="material-symbols-outlined">trending_flat</span>
+                                </div>
+                            </div>
+                            <div class="relative group">
+                                <div
+                                    class="bg-white p-10 rounded-[2.5rem] shadow-xl border-b-8 border-sunny-play group-hover:-translate-y-4 transition-transform duration-500 -rotate-2">
+                                    <div
+                                        class="w-20 h-20 bg-sunny-play/20 rounded-2xl flex items-center justify-center mb-8 -rotate-6">
+                                        <span
+                                            class="material-symbols-outlined text-5xl text-sunny-play">psychology_alt</span>
+                                    </div>
+                                    <h3 class="font-display text-3xl font-bold mb-4">2. Giggle!</h3>
+                                    <p class="text-lg text-slate-600 leading-relaxed">Watch your friends draw silly things
+                                        and guess what's hiding in their lines!</p>
+                                </div>
+                                <div class="hidden md:block absolute top-1/2 -right-6 z-10 text-berry-sweet scale-150">
+                                    <span class="material-symbols-outlined">trending_flat</span>
+                                </div>
+                            </div>
+                            <div class="relative group">
+                                <div
+                                    class="bg-white p-10 rounded-[2.5rem] shadow-xl border-b-8 border-berry-sweet group-hover:-translate-y-4 transition-transform duration-500 rotate-2">
+                                    <div
+                                        class="w-20 h-20 bg-berry-sweet/20 rounded-2xl flex items-center justify-center mb-8 rotate-12">
+                                        <span class="material-symbols-outlined text-5xl text-berry-sweet">mood</span>
+                                    </div>
+                                    <h3 class="font-display text-3xl font-bold mb-4">3. Sparkle!</h3>
+                                    <p class="text-lg text-slate-600 leading-relaxed">Collect shiny badges and share your
+                                        masterpieces with the whole wide world!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section class="py-24 px-6 lg:px-24">
+                    <div class="max-w-6xl mx-auto">
+                        <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
+                            <div>
+                                <h2 class="font-display text-5xl font-black text-slate-900 mb-4">Today's Masterpieces</h2>
+                                <p class="text-xl text-slate-500">A garden of fresh doodles picked just for you!</p>
+                            </div>
+                            <button
+                                class="bg-white border-4 border-sky-joy text-sky-joy px-8 py-4 rounded-full font-display font-bold text-xl hover:bg-sky-joy hover:text-white transition-all shadow-[4px_4px_0_0_#38bdf8]">
+                                Visit the Wonder Hall
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                            <div
+                                class="group relative aspect-[3/4] bg-sunny-play/20 rounded-playful overflow-hidden shadow-lg rotate-1 hover:rotate-0 transition-transform cursor-pointer">
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-7xl text-sunny-play/40">palette</span>
+                                </div>
+                                <div
+                                    class="absolute bottom-0 inset-x-0 p-6 bg-white/80 backdrop-blur-sm border-t-2 border-dashed border-sunny-play">
+                                    <p class="font-display font-bold text-lg text-slate-800">Sunny Meadows</p>
+                                    <p class="text-sm font-bold text-sunny-play">by LittleBee</p>
+                                </div>
+                            </div>
+                            <div
+                                class="group relative aspect-[3/4] bg-berry-sweet/20 rounded-playful overflow-hidden shadow-lg -rotate-2 hover:rotate-0 transition-transform cursor-pointer translate-y-8">
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-7xl text-berry-sweet/40">cruelty_free</span>
+                                </div>
+                                <div
+                                    class="absolute bottom-0 inset-x-0 p-6 bg-white/80 backdrop-blur-sm border-t-2 border-dashed border-berry-sweet">
+                                    <p class="font-display font-bold text-lg text-slate-800">Pink Bun</p>
+                                    <p class="text-sm font-bold text-berry-sweet">by HopAround</p>
+                                </div>
+                            </div>
+                            <div
+                                class="group relative aspect-[3/4] bg-sky-joy/20 rounded-playful overflow-hidden shadow-lg rotate-3 hover:rotate-0 transition-transform cursor-pointer">
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-7xl text-sky-joy/40">cloud</span>
+                                </div>
+                                <div
+                                    class="absolute bottom-0 inset-x-0 p-6 bg-white/80 backdrop-blur-sm border-t-2 border-dashed border-sky-joy">
+                                    <p class="font-display font-bold text-lg text-slate-800">Cloud Castle</p>
+                                    <p class="text-sm font-bold text-sky-joy">by SkyHigh</p>
+                                </div>
+                            </div>
+                            <div
+                                class="group relative aspect-[3/4] bg-leafy-fun/20 rounded-playful overflow-hidden shadow-lg -rotate-1 hover:rotate-0 transition-transform cursor-pointer translate-y-4">
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-7xl text-leafy-fun/40">forest</span>
+                                </div>
+                                <div
+                                    class="absolute bottom-0 inset-x-0 p-6 bg-white/80 backdrop-blur-sm border-t-2 border-dashed border-leafy-fun">
+                                    <p class="font-display font-bold text-lg text-slate-800">Secret Woods</p>
+                                    <p class="text-sm font-bold text-leafy-fun">by FernLeaf</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section class="py-24 px-6 lg:px-24">
+                    <div
+                        class="max-w-5xl mx-auto bg-gradient-to-br from-sky-joy via-berry-sweet to-sunny-play p-1 rounded-[4rem] shadow-2xl rotate-1">
+                        <div
+                            class="bg-[#fffdf5] rounded-[3.8rem] px-8 py-20 text-center flex flex-col items-center gap-10 -rotate-1">
+                            <div class="bg-sunny-play/20 p-6 rounded-full animate-bounce">
+                                <span class="material-symbols-outlined text-6xl text-sunny-play">magic_button</span>
+                            </div>
+                            <h2 class="font-display text-5xl md:text-7xl font-black text-slate-900 leading-tight">
+                                Ready to paint the world <br />
+                                <span
+                                    class="text-transparent bg-clip-text bg-gradient-to-r from-sky-joy to-leafy-fun">together?</span>
+                            </h2>
+                            <p class="text-2xl text-slate-600 max-w-2xl font-medium">
+                                Join the millions of joy-seekers already splashing color across our wonderland. It's free,
+                                it's fun, and it needs YOU!
+                            </p>
+                            <button
+                                class="bg-berry-sweet text-white px-12 py-6 rounded-full font-display font-black text-3xl shadow-[0_10px_0_0_#be185d] hover:shadow-[0_4px_0_0_#be185d] hover:translate-y-2 transition-all">
+                                Let's Goooo! 🚀
+                            </button>
+                            <div class="flex gap-4 items-center">
+                                <span class="material-symbols-outlined text-leafy-fun">check_circle</span>
+                                <p class="font-display font-bold text-slate-400 uppercase tracking-widest">No Boring
+                                    Downloads • Pure Happiness</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+            <footer class="bg-slate-900 text-white py-20 px-6 lg:px-24 mt-12 wavy-border">
+                <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-16">
+                    <div class="col-span-1 md:col-span-2 space-y-8">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-sky-joy p-2 rounded-xl -rotate-12">
+                                <span class="material-symbols-outlined text-2xl">auto_fix_high</span>
+                            </div>
+                            <h2 class="text-3xl font-display font-bold">DoodlePop!</h2>
+                        </div>
+                        <p class="text-slate-400 text-lg leading-relaxed max-w-sm">
+                            Spreading giggles and splashes of paint since the dawn of digital crayons. Join our happy little
+                            corner of the internet!
+                        </p>
+                        <div class="flex gap-4">
+                            <a class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center hover:bg-sky-joy transition-colors"
+                                href="#"><span class="material-symbols-outlined">star</span></a>
+                            <a class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center hover:bg-berry-sweet transition-colors"
+                                href="#"><span class="material-symbols-outlined">heart_broken</span></a>
+                            <a class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center hover:bg-sunny-play hover:text-slate-900 transition-colors"
+                                href="#"><span class="material-symbols-outlined">mood</span></a>
+                        </div>
+                    </div>
+                    <div class="space-y-6">
+                        <h4 class="font-display text-xl font-bold text-sky-joy">Fun Places</h4>
+                        <ul class="space-y-4 text-slate-400 font-medium">
+                            <li><a class="hover:text-white transition-colors" href="#">The Paint Box</a></li>
+                            <li><a class="hover:text-white transition-colors" href="#">Hall of Fame</a></li>
+                            <li><a class="hover:text-white transition-colors" href="#">Buddy List</a></li>
+                            <li><a class="hover:text-white transition-colors" href="#">Daily Doodles</a></li>
+                        </ul>
+                    </div>
+                    <div class="space-y-6">
+                        <h4 class="font-display text-xl font-bold text-berry-sweet">Helpful Stuff</h4>
+                        <ul class="space-y-4 text-slate-400 font-medium">
+                            <li><a class="hover:text-white transition-colors" href="#">How to Play</a></li>
+                            <li><a class="hover:text-white transition-colors" href="#">Secret Tips</a></li>
+                            <li><a class="hover:text-white transition-colors" href="#">Safety Nest</a></li>
+                            <li><a class="hover:text-white transition-colors" href="#">Say Hello</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div
+                    class="max-w-6xl mx-auto mt-20 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-8 text-slate-500 font-bold">
+                    <p>© 2024 DoodlePop! Created with lots of magic and a few sprinkles.</p>
+                    <div class="flex gap-8">
+                        <a class="hover:text-sky-joy transition-colors" href="#">Magic Rules</a>
+                        <a class="hover:text-berry-sweet transition-colors" href="#">Privacy Cloud</a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+
+    </body>
+
+</html>

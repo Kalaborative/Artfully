@@ -296,6 +296,7 @@ export default function ProfilePage() {
           drawings={drawings}
           isOwner={true}
           onDelete={handleDeleteDrawing}
+          artistName={profile.displayName}
         />
       </div>
 

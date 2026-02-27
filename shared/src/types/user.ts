@@ -56,6 +56,18 @@ export interface SavedDrawing {
   createdAt: string;
 }
 
+export interface HallOfFameEntry {
+  id: string;
+  originalDrawingId: string;
+  userId: string;
+  artistName: string;
+  imageFileId: string;
+  imageUrl: string;
+  replayData?: string;
+  likesCount: number;
+  createdAt: string;
+}
+
 export const MAX_SAVED_DRAWINGS = 3;
 
 export interface WallMessage {

@@ -175,7 +175,7 @@ export default function PlayerProfilePage() {
       {/* Gallery */}
       {drawings.length > 0 && (
         <div className="mt-6">
-          <DrawingGallery drawings={drawings} isOwner={false} />
+          <DrawingGallery drawings={drawings} isOwner={false} artistName={profile.displayName} />
         </div>
       )}
 

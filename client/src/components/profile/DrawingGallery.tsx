@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { Palette, Trash2, X, Play } from 'lucide-react';
-import type { SavedDrawing, Stroke, FillAction } from '@artfully/shared';
+import { Palette, Trash2, X, Play, Star } from 'lucide-react';
+import { useAuthStore } from '../../store/authStore';
+import { account } from '../../lib/appwrite';
+import type { SavedDrawing } from '@artfully/shared';
 import { MAX_SAVED_DRAWINGS } from '@artfully/shared';
 import Card from '../ui/Card';
 import ReplayOverlay from '../canvas/ReplayOverlay';
@@ -9,13 +11,20 @@ interface DrawingGalleryProps {
   drawings: SavedDrawing[];
   isOwner: boolean;
   onDelete?: (id: string) => Promise<void>;
+  artistName?: string;
 }
 
-export default function DrawingGallery({ drawings, isOwner, onDelete }: DrawingGalleryProps) {
+export default function DrawingGallery({ drawings, isOwner, onDelete, artistName }: DrawingGalleryProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [replayData, setReplayData] = useState<{ strokes: Stroke[]; fillActions: FillAction[] } | null>(null);
+  const [replayData, setReplayData] = useState<{ strokes: any[]; fillActions: any[] } | null>(null);
   const [loadingReplayId, setLoadingReplayId] = useState<string | null>(null);
+  const [addingToHallId, setAddingToHallId] = useState<string | null>(null);
+  const [hallStatus, setHallStatus] = useState<{ id: string; success: boolean } | null>(null);
+
+  const { user, profile } = useAuthStore();
+  const ADMIN_IDS = (import.meta.env.VITE_ADMIN_USER_IDS || '').split(',').map((s: string) => s.trim()).filter(Boolean);
+  const isAdmin = user && ADMIN_IDS.includes(user.$id);
 
   const handleDelete = async (id: string) => {
     if (!onDelete) return;
@@ -39,6 +48,45 @@ export default function DrawingGallery({ drawings, isOwner, onDelete }: DrawingG
       console.error('Failed to load replay:', err);
     } finally {
       setLoadingReplayId(null);
+    }
+  };
+
+  const handleAddToHallOfFame = async (drawing: SavedDrawing) => {
+    setAddingToHallId(drawing.id);
+    setHallStatus(null);
+    try {
+      const serverUrl = import.meta.env.VITE_SERVER_URL || '';
+      const jwt = await account.createJWT();
+
+      const res = await fetch(`${serverUrl}/api/hall-of-fame`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${jwt.jwt}`,
+        },
+        body: JSON.stringify({
+          originalDrawingId: drawing.id,
+          userId: drawing.userId,
+          artistName: artistName || profile?.displayName || user?.name || 'Unknown Artist',
+          imageFileId: drawing.imageFileId,
+          imageUrl: drawing.imageUrl,
+          replayData: drawing.replayData
+        })
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed');
+      }
+
+      setHallStatus({ id: drawing.id, success: true });
+      setTimeout(() => setHallStatus(null), 3000);
+    } catch (err: any) {
+      console.error(err);
+      setHallStatus({ id: drawing.id, success: false });
+      setTimeout(() => setHallStatus(null), 3000);
+    } finally {
+      setAddingToHallId(null);
     }
   };
 
@@ -103,6 +151,20 @@ export default function DrawingGallery({ drawings, isOwner, onDelete }: DrawingG
                   title="Delete drawing"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+
+              {isAdmin && (
+                <button
+                  onClick={() => handleAddToHallOfFame(drawing)}
+                  disabled={addingToHallId === drawing.id || hallStatus?.id === drawing.id}
+                  className={`absolute top-2 right-${isOwner ? '10' : '2'} p-1.5 rounded-full ${hallStatus?.id === drawing.id
+                    ? hallStatus.success ? 'bg-green-500/80' : 'bg-red-500/80'
+                    : 'bg-yellow-500/80 hover:bg-yellow-600'
+                    } text-white opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50`}
+                  title="Feature in Wonder Hall"
+                >
+                  <Star className="w-3.5 h-3.5 fill-current" />
                 </button>
               )}
             </div>

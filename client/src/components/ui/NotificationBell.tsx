@@ -61,7 +61,7 @@ export default function NotificationBell() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative flex items-center text-gray-600 hover:text-gray-900 transition-colors p-1"
+        className="relative flex items-center text-yellow-500 hover:text-yellow-600 transition-colors p-2 rounded-xl bg-yellow-50 hover:bg-yellow-100"
         aria-label="Notifications"
       >
         <Bell className="w-5 h-5" />
@@ -96,9 +96,8 @@ export default function NotificationBell() {
                 <button
                   key={n.id}
                   onClick={() => handleNotificationClick(n)}
-                  className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 ${
-                    !n.isRead ? 'bg-primary-50/50' : ''
-                  }`}
+                  className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 ${!n.isRead ? 'bg-primary-50/50' : ''
+                    }`}
                 >
                   <div className="flex items-start gap-2">
                     {!n.isRead && (

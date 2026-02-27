@@ -13,6 +13,7 @@ import LeaderboardPage from './pages/LeaderboardPage';
 import PlayerProfilePage from './pages/PlayerProfilePage';
 import PracticePage from './pages/PracticePage';
 import AdminPage from './pages/AdminPage';
+import HallOfFamePage from './pages/HallOfFamePage';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
@@ -61,6 +62,7 @@ function App() {
           element={isAuthenticated ? <Navigate to="/" replace /> : <RegisterPage />}
         />
         <Route path="leaderboard" element={<LeaderboardPage />} />
+        <Route path="hall-of-fame" element={<HallOfFamePage />} />
         <Route path="player/:username" element={<PlayerProfilePage />} />
         <Route
           path="profile"

@@ -51,9 +51,18 @@ export default {
           400: '#5eead4',
           500: '#2dd4bf',
         },
+        'sky-joy': '#38bdf8',
+        'sunny-play': '#fde047',
+        'leafy-fun': '#4ade80',
+        'berry-sweet': '#f472b6',
+        'cloud-soft': '#f0f9ff',
       },
       fontFamily: {
         sans: ['Nunito', 'system-ui', 'sans-serif'],
+        display: ['Fredoka', 'sans-serif'],
+      },
+      borderRadius: {
+        playful: '2rem',
       },
       animation: {
         'bounce-slow': 'bounce 2s infinite',
