@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { useThemeStore } from '../store/themeStore';
 import { account } from '../lib/appwrite';
 import CreateLobbyModal from '../components/lobby/CreateLobbyModal';
 import MatchmakingModal from '../components/lobby/MatchmakingModal';
@@ -19,10 +20,15 @@ import {
   PenTool,
   MessageSquare,
   Trophy,
+  ShoppingBag,
 } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user, profile } = useAuthStore();
+  const activeTheme = useThemeStore((s) => s.activeTheme);
+  const isSunset = activeTheme === 'sunset';
+  const isOcean = activeTheme === 'ocean';
+  const isThemed = isSunset || isOcean;
   const navigate = useNavigate();
   const [showCreate, setShowCreate] = useState(false);
   const [showMatchmaking, setShowMatchmaking] = useState(false);
@@ -141,32 +147,96 @@ export default function DashboardPage() {
             <span className="font-semibold text-sm">Practice Mode</span>
             <ChevronRight className="w-4 h-4 text-gray-300 ml-auto group-hover:text-accent-400" />
           </button>
+
+          <button
+            onClick={() => navigate('/shop')}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-pink-50 transition-colors text-left text-gray-700 hover:text-pink-600 group"
+          >
+            <div className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center group-hover:bg-pink-200 transition-colors">
+              <ShoppingBag className="w-4 h-4 text-pink-500" />
+            </div>
+            <span className="font-semibold text-sm">Shop</span>
+            <ChevronRight className="w-4 h-4 text-gray-300 ml-auto group-hover:text-pink-400" />
+          </button>
         </nav>
       </aside>
 
       {/* ── Main Content ──────────────────────────────────────────────── */}
-      <main className="flex-1 overflow-y-auto p-6 bg-[#f4f6f8]">
+      <main className="flex-1 overflow-y-auto p-6 bg-cream-50">
 
         {/* Hero Section */}
-        <section className="relative rounded-[2rem] overflow-hidden mb-8 min-h-[380px] flex items-center bg-gradient-to-br from-[#2d1b4e] to-[#4a2a8a] shadow-xl">
-          {/* Scanlines overlay */}
-          <div className="absolute inset-0 scanlines opacity-40 z-20 pointer-events-none" />
+        <section className={`relative rounded-[2rem] overflow-hidden mb-8 min-h-[380px] flex items-center shadow-xl ${
+          isSunset
+            ? 'bg-gradient-to-br from-[#7c2d12] via-[#c2410c] to-[#f97316]'
+            : isOcean
+              ? 'bg-gradient-to-br from-[#0c1445] via-[#1e3a8a] to-[#1d4ed8]'
+              : 'bg-gradient-to-br from-[#2d1b4e] to-[#4a2a8a]'
+        }`}>
+          {/* Scanlines overlay (default only) */}
+          {!isThemed && <div className="absolute inset-0 scanlines opacity-40 z-20 pointer-events-none" />}
 
-          {/* Animated radial pulse */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_rgba(20,184,166,0.3)_0%,_transparent_70%)] z-10 animate-pulse" />
+          {/* Animated radial pulse / sunset glow */}
+          {isSunset ? (
+            <>
+              {/* Warm sun glow */}
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_60%,_rgba(251,146,60,0.5)_0%,_transparent_60%)] z-10 animate-pulse" />
+              {/* Horizon haze */}
+              <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-[#fef3c7]/20 to-transparent z-10" />
+              {/* Sun orb – top-left, behind text */}
+              <div className="absolute left-[8%] top-[8%] w-36 h-36 rounded-full bg-[radial-gradient(circle,_#fde68a_0%,_#f97316_50%,_transparent_70%)] opacity-80 z-10 animate-[sunPulse_4s_ease-in-out_infinite]" />
+              {/* Drifting clouds */}
+              <svg className="absolute top-[12%] left-0 w-44 h-20 z-10 animate-[cloudDrift_22s_linear_infinite]" viewBox="0 0 1200 1200" fill="white" opacity="0.12">
+                <path d="M949.301,499.669c-9.341,0-18.281,0.855-27.36,2.113c0-0.751,0.104-1.434,0.104-2.113c0-110.825-89.873-200.699-200.63-200.699c-96.107,0-176.164,67.541-196,157.586c-27.486-21.006-61.569-33.543-98.796-33.543c-88.754,0-160.711,70.598-163.368,158.741c-15.646-4.992-32.371-7.807-49.765-7.807C123.195,573.947,50,647.127,50,737.49c0,90.31,73.195,163.54,163.486,163.54h735.815c110.825,0,200.699-89.905,200.699-200.731C1150,589.42,1060.127,499.669,949.301,499.669z"/>
+              </svg>
+              <svg className="absolute top-[38%] left-[-10%] w-56 h-24 z-10 animate-[cloudDrift_28s_linear_infinite_3s]" viewBox="0 0 1200 1200" fill="white" opacity="0.1">
+                <path d="M949.301,499.669c-9.341,0-18.281,0.855-27.36,2.113c0-0.751,0.104-1.434,0.104-2.113c0-110.825-89.873-200.699-200.63-200.699c-96.107,0-176.164,67.541-196,157.586c-27.486-21.006-61.569-33.543-98.796-33.543c-88.754,0-160.711,70.598-163.368,158.741c-15.646-4.992-32.371-7.807-49.765-7.807C123.195,573.947,50,647.127,50,737.49c0,90.31,73.195,163.54,163.486,163.54h735.815c110.825,0,200.699-89.905,200.699-200.731C1150,589.42,1060.127,499.669,949.301,499.669z"/>
+              </svg>
+              <svg className="absolute top-[60%] left-[-5%] w-36 h-16 z-10 animate-[cloudDrift_20s_linear_infinite_8s]" viewBox="0 0 1200 1200" fill="white" opacity="0.12">
+                <path d="M949.301,499.669c-9.341,0-18.281,0.855-27.36,2.113c0-0.751,0.104-1.434,0.104-2.113c0-110.825-89.873-200.699-200.63-200.699c-96.107,0-176.164,67.541-196,157.586c-27.486-21.006-61.569-33.543-98.796-33.543c-88.754,0-160.711,70.598-163.368,158.741c-15.646-4.992-32.371-7.807-49.765-7.807C123.195,573.947,50,647.127,50,737.49c0,90.31,73.195,163.54,163.486,163.54h735.815c110.825,0,200.699-89.905,200.699-200.731C1150,589.42,1060.127,499.669,949.301,499.669z"/>
+              </svg>
+            </>
+          ) : isOcean ? (
+            <>
+              {/* Deep ocean glow */}
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_40%,_rgba(6,182,212,0.3)_0%,_transparent_60%)] z-10 animate-pulse" />
+              {/* Ocean floor gradient */}
+              <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-[#0c1445]/60 to-transparent z-10" />
+              {/* Animated wave layers */}
+              <svg className="absolute bottom-0 left-0 w-[200%] h-24 z-10 animate-[waveDrift_6s_ease-in-out_infinite]" viewBox="0 0 1440 120" fill="none" preserveAspectRatio="none">
+                <path d="M0,80 C360,20 720,120 1080,60 C1260,30 1440,80 1440,80 L1440,120 L0,120 Z" fill="rgba(6,182,212,0.1)"/>
+              </svg>
+              <svg className="absolute bottom-0 left-0 w-[200%] h-20 z-10 animate-[waveDrift_8s_ease-in-out_infinite_1s]" viewBox="0 0 1440 120" fill="none" preserveAspectRatio="none">
+                <path d="M0,90 C320,40 640,110 960,70 C1200,40 1440,90 1440,90 L1440,120 L0,120 Z" fill="rgba(96,165,250,0.08)"/>
+              </svg>
+              {/* Floating bubbles */}
+              <div className="absolute bottom-[20%] left-[15%] w-6 h-6 rounded-full bg-cyan-300/30 z-10 animate-[bubbleRise_5s_ease-in_infinite]" />
+              <div className="absolute bottom-[10%] left-[40%] w-5 h-5 rounded-full bg-cyan-200/25 z-10 animate-[bubbleRise_7s_ease-in_infinite_2s]" />
+              <div className="absolute bottom-[15%] left-[65%] w-7 h-7 rounded-full bg-blue-300/30 z-10 animate-[bubbleRise_6s_ease-in_infinite_4s]" />
+            </>
+          ) : (
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_rgba(20,184,166,0.3)_0%,_transparent_70%)] z-10 animate-pulse" />
+          )}
 
           {/* Text + buttons */}
           <div className="relative z-30 px-10 py-10 max-w-2xl">
-            <div className="inline-block px-3 py-1 bg-primary-500/20 text-primary-300 rounded-full text-xs font-bold tracking-widest mb-5 border border-primary-400/30 uppercase">
+            <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold tracking-widest mb-5 uppercase ${
+              isSunset
+                ? 'bg-amber-400/20 text-amber-200 border border-amber-300/30'
+                : isOcean
+                  ? 'bg-cyan-400/20 text-cyan-200 border border-cyan-300/30'
+                  : 'bg-primary-500/20 text-primary-300 border border-primary-400/30'
+            }`}>
               Welcome back, {displayName}!
             </div>
 
             <h1 className="text-5xl font-black text-white mb-5 leading-tight tracking-tight">
               START YOUR<br />
-              <span className="text-primary-300">ADVENTURE</span>
+              <span className={isSunset ? 'text-amber-200' : isOcean ? 'text-cyan-200' : 'text-primary-300'}>ADVENTURE</span>
             </h1>
 
-            <p className="text-slate-300 text-base font-medium mb-8 leading-relaxed max-w-md">
+            <p className={`text-base font-medium mb-8 leading-relaxed max-w-md ${
+              isSunset ? 'text-orange-100' : isOcean ? 'text-blue-100' : 'text-slate-300'
+            }`}>
               Enter the immersive canvas. Duel other artists in real-time or master your craft solo.
             </p>
 
@@ -174,9 +244,15 @@ export default function DashboardPage() {
               {/* Normal Play */}
               <button
                 onClick={() => startMatchmaking('normal')}
-                className="glowing-btn flex items-center gap-2 bg-white text-gray-900 px-8 py-4 rounded-2xl font-black text-base hover:scale-105 active:scale-95 transition-all"
+                className={`flex items-center gap-2 px-8 py-4 rounded-2xl font-black text-base hover:scale-105 active:scale-95 transition-all ${
+                  isSunset
+                    ? 'bg-white text-orange-900 shadow-[0_0_20px_rgba(249,115,22,0.6)]'
+                    : isOcean
+                      ? 'bg-white text-blue-900 shadow-[0_0_20px_rgba(6,182,212,0.6)]'
+                      : 'glowing-btn bg-white text-gray-900'
+                }`}
               >
-                <Play className="w-5 h-5 text-primary-600" />
+                <Play className={`w-5 h-5 ${isSunset ? 'text-orange-600' : isOcean ? 'text-blue-600' : 'text-primary-600'}`} />
                 NORMAL PLAY
               </button>
 
@@ -194,14 +270,24 @@ export default function DashboardPage() {
           {/* Animated decoration – right side */}
           <div className="absolute right-10 bottom-0 top-0 w-1/3 hidden lg:flex items-center justify-center pointer-events-none">
             <div className="relative w-full h-full flex items-center justify-center">
-              {/* Bouncing brush icon box */}
-              <div className="w-52 h-52 bg-gradient-to-tr from-primary-500 to-secondary-400 rounded-[2.5rem] rotate-12 flex items-center justify-center shadow-[0_0_60px_rgba(20,184,166,0.4)] animate-bounce overflow-hidden">
+              {/* Bouncing icon box */}
+              <div className={`w-52 h-52 rounded-[2.5rem] rotate-12 flex items-center justify-center animate-bounce overflow-hidden ${
+                isSunset
+                  ? 'bg-gradient-to-tr from-[#ea580c] to-[#fbbf24] shadow-[0_0_60px_rgba(249,115,22,0.4)]'
+                  : isOcean
+                    ? 'bg-gradient-to-tr from-[#1e3a8a] to-[#06b6d4] shadow-[0_0_60px_rgba(6,182,212,0.4)]'
+                    : 'bg-gradient-to-tr from-primary-500 to-secondary-400 shadow-[0_0_60px_rgba(20,184,166,0.4)]'
+              }`}>
                 <Gamepad2 className="w-28 h-28 text-white/90" />
-                <div className="absolute inset-0 scanlines bg-white/10 pointer-events-none" />
+                {!isThemed && <div className="absolute inset-0 scanlines bg-white/10 pointer-events-none" />}
               </div>
               {/* Ping rings */}
-              <div className="absolute top-1/4 right-0 w-20 h-20 border-4 border-primary-300/30 rounded-full animate-ping" />
-              <div className="absolute bottom-1/4 left-0 w-14 h-14 border-4 border-secondary-300/30 rounded-lg rotate-45" />
+              <div className={`absolute top-1/4 right-0 w-20 h-20 border-4 rounded-full animate-ping ${
+                isSunset ? 'border-amber-300/30' : isOcean ? 'border-cyan-300/30' : 'border-primary-300/30'
+              }`} />
+              <div className={`absolute bottom-1/4 left-0 w-14 h-14 border-4 rounded-lg rotate-45 ${
+                isSunset ? 'border-orange-300/30' : isOcean ? 'border-blue-300/30' : 'border-secondary-300/30'
+              }`} />
             </div>
           </div>
         </section>

@@ -24,6 +24,7 @@ export const COLLECTIONS = {
   ANNOUNCEMENTS: 'announcements',
   WALL_MESSAGES: 'wall_messages',
   NOTIFICATIONS: 'notifications',
+  USER_PURCHASES: 'user_purchases',
 } as const;
 
 export const BUCKETS = {

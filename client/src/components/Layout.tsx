@@ -1,12 +1,27 @@
+import { useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { Palette, User, LogOut } from 'lucide-react';
+import { useThemeStore } from '../store/themeStore';
+import { useShopStore } from '../store/shopStore';
+import { Palette, User, LogOut, Coins } from 'lucide-react';
 import NotificationBell from './ui/NotificationBell';
 
 export default function Layout() {
-  const { isAuthenticated, user, profile, logout } = useAuthStore();
+  const { isAuthenticated, user, profile, statistics, logout } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
+  const initTheme = useThemeStore((s) => s.initTheme);
+  const { purchasedItems, fetchPurchases } = useShopStore();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchPurchases();
+    }
+  }, [isAuthenticated, fetchPurchases]);
+
+  useEffect(() => {
+    initTheme();
+  }, [profile?.activeTheme, purchasedItems, initTheme]);
 
   const handleLogout = async () => {
     await logout();
@@ -27,6 +42,14 @@ export default function Layout() {
               <nav className="flex items-center gap-4">
                 {isAuthenticated ? (
                   <>
+                    <Link
+                      to="/shop"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors font-semibold text-sm"
+                      title="Coins"
+                    >
+                      <Coins className="w-4 h-4" />
+                      <span>{statistics?.coins ?? 0}</span>
+                    </Link>
                     <NotificationBell />
                     <Link
                       to="/profile"

@@ -100,6 +100,7 @@ export interface GamePlayer {
   firstGuesses: number;
   isDrawing: boolean;
   hasGuessedCorrectly: boolean;
+  coinsEarned: number;
   isConnected: boolean;
 }
 
@@ -123,6 +124,7 @@ export interface GamePlayerResult {
   firstGuesses: number;
   roundsDrawn: number;
   pointsGained: number;
+  coinsEarned: number;
 }
 
 export interface GuessResult {

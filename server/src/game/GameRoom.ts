@@ -85,6 +85,7 @@ export class GameRoom {
         firstGuesses: 0,
         isDrawing: false,
         hasGuessedCorrectly: false,
+        coinsEarned: 0,
         isConnected: true
       });
     }
@@ -394,6 +395,7 @@ export class GameRoom {
     );
 
     player.points += points;
+    player.coinsEarned += 50;
 
     this.roundGuessers.push({
       userId,
@@ -446,6 +448,11 @@ export class GameRoom {
       );
       drawer.points += drawerPoints;
 
+      // Award drawer coins if all guessers guessed correctly
+      if (this.roundGuessers.length >= maxGuessers) {
+        drawer.coinsEarned += 100;
+      }
+
       // Emit round end
       this.io.to(this.roomId).emit('round:end', {
         word: this.roundState.word!,
@@ -478,6 +485,14 @@ export class GameRoom {
     const sortedPlayers = Array.from(this.players.values())
       .sort((a, b) => b.points - a.points);
 
+    // Award placement bonuses
+    const placementBonuses = [500, 300, 250];
+    sortedPlayers.forEach((p, i) => {
+      if (i < 3 && p.points > 0) {
+        p.coinsEarned += placementBonuses[i];
+      }
+    });
+
     // Emit game ended
     this.io.to(this.roomId).emit('game:ended', {
       results: {
@@ -493,7 +508,8 @@ export class GameRoom {
           correctGuesses: p.correctGuesses,
           firstGuesses: p.firstGuesses,
           roundsDrawn: Math.floor(this.currentRound / this.players.size),
-          pointsGained: p.points
+          pointsGained: p.points,
+          coinsEarned: p.coinsEarned
         })),
         totalRounds: this.currentRound - 1,
         gameMode: this.gameMode,
@@ -528,6 +544,7 @@ export class GameRoom {
           gamesPlayed: (doc.gamesPlayed || 0) + 1,
           gamesWon: (doc.gamesWon || 0) + (isWinner ? 1 : 0),
           totalPoints: (doc.totalPoints || 0) + player.points,
+          coins: (doc.coins || 0) + player.coinsEarned,
         });
       });
 

@@ -34,6 +34,7 @@ import {
   Minus,
   Maximize2,
   Minimize2,
+  Coins,
 } from 'lucide-react';
 
 const ADMIN_IDS = (import.meta.env.VITE_ADMIN_USER_IDS || '').split(',').map((s: string) => s.trim()).filter(Boolean);
@@ -230,8 +231,13 @@ export default function AdminPage() {
   const [todos, setTodos] = useState<TodoItem[]>(loadTodos);
   const [newTodo, setNewTodo] = useState('');
 
+  const [coinAmount, setCoinAmount] = useState('');
+  const [coinLoading, setCoinLoading] = useState(false);
+  const [coinMsg, setCoinMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
   const [widgetStates, setWidgetStates] = useState<Record<string, WidgetState>>({
     todo: 'normal',
+    coins: 'normal',
     compose: 'normal',
     announcements: 'normal',
     feedback: 'normal',
@@ -251,6 +257,7 @@ export default function AdminPage() {
 
   const widgetMeta: Record<string, { label: string; icon: React.ReactNode }> = {
     todo: { label: 'To-Do', icon: <ListTodo className="w-4 h-4" /> },
+    coins: { label: 'Coins', icon: <Coins className="w-4 h-4" /> },
     compose: { label: 'New Announcement', icon: <Megaphone className="w-4 h-4" /> },
     announcements: { label: 'Announcements', icon: <Newspaper className="w-4 h-4" /> },
     feedback: { label: 'Feedback', icon: <MessageSquare className="w-4 h-4" /> },
@@ -274,6 +281,39 @@ export default function AdminPage() {
     const updated = todos.filter((t) => t.id !== id);
     setTodos(updated);
     saveTodos(updated);
+  };
+
+  const handleAddCoins = async () => {
+    const parsed = parseInt(coinAmount, 10);
+    if (!parsed || parsed <= 0) return;
+
+    setCoinLoading(true);
+    setCoinMsg(null);
+    try {
+      const jwt = await account.createJWT();
+      const serverUrl = import.meta.env.VITE_SERVER_URL || '';
+      const res = await fetch(`${serverUrl}/api/shop/admin/add-coins`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${jwt.jwt}`,
+        },
+        body: JSON.stringify({ amount: parsed }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setCoinMsg({ type: 'success', text: `Added ${parsed.toLocaleString()} coins. New balance: ${data.coins.toLocaleString()}` });
+        setCoinAmount('');
+        // Refresh navbar balance
+        useAuthStore.getState().refreshStatistics();
+      } else {
+        setCoinMsg({ type: 'error', text: data.error || 'Failed to add coins' });
+      }
+    } catch {
+      setCoinMsg({ type: 'error', text: 'Failed to add coins' });
+    } finally {
+      setCoinLoading(false);
+    }
   };
 
   const isAdmin = user && ADMIN_IDS.includes(user.$id);
@@ -472,6 +512,54 @@ export default function AdminPage() {
                   ))}
                 </ul>
               )}
+            </Widget>
+
+            {/* Coins Widget */}
+            <Widget
+              title="Add Coins"
+              icon={<Coins className="w-4 h-4" />}
+              state={widgetStates.coins}
+              onMinimize={() => toggleMinimize('coins')}
+              onMaximize={() => toggleMaximize('coins')}
+              onClose={() => closeWidget('coins')}
+            >
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    value={coinAmount}
+                    onChange={(e) => setCoinAmount(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddCoins()}
+                    placeholder="Amount..."
+                    min={1}
+                    max={1000000}
+                    className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none text-sm bg-white/80"
+                  />
+                  <button
+                    onClick={handleAddCoins}
+                    disabled={coinLoading || !coinAmount || parseInt(coinAmount, 10) <= 0}
+                    className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                  >
+                    {coinLoading ? '...' : 'Add'}
+                  </button>
+                </div>
+                <div className="flex gap-1.5">
+                  {[100, 500, 1000, 5000].map((amt) => (
+                    <button
+                      key={amt}
+                      onClick={() => setCoinAmount(String(amt))}
+                      className="px-2.5 py-1 bg-amber-50 text-amber-700 rounded-lg text-xs font-medium hover:bg-amber-100 transition-colors"
+                    >
+                      +{amt.toLocaleString()}
+                    </button>
+                  ))}
+                </div>
+                {coinMsg && (
+                  <p className={`text-sm ${coinMsg.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                    {coinMsg.text}
+                  </p>
+                )}
+              </div>
             </Widget>
 
             {/* New Announcement Widget */}

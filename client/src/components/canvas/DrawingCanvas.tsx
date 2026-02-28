@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
+import { useRef, useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { useCanvasStore } from '../../store/canvasStore';
 import { CANVAS_CONFIG } from '@artfully/shared';
 import type { Point, ToolType } from '@artfully/shared';
@@ -22,6 +22,7 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>(functi
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDrawingRef = useRef(false);
+  const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
 
   useImperativeHandle(ref, () => ({
     toDataURL: () => canvasRef.current?.toDataURL('image/png') ?? null,
@@ -32,6 +33,7 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>(functi
     fillActions,
     currentStroke,
     currentTool,
+    size,
     startStroke,
     addPoint,
     endStroke,
@@ -88,12 +90,20 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>(functi
   }, [isDrawer, currentTool, getCanvasPoint, startStroke, fill]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (isDrawer && currentTool === 'eraser') {
+      const container = containerRef.current;
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        setCursorPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+      }
+    }
+
     if (!isDrawer || !isDrawingRef.current) return;
 
     e.preventDefault();
     const point = getCanvasPoint(e);
     addPoint(point);
-  }, [isDrawer, getCanvasPoint, addPoint]);
+  }, [isDrawer, currentTool, getCanvasPoint, addPoint]);
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
     if (!isDrawer || !isDrawingRef.current) return;
@@ -107,19 +117,54 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>(functi
     endStroke();
   }, [isDrawer, endStroke]);
 
+  const handlePointerEnter = useCallback((e: React.PointerEvent) => {
+    if (isDrawer && currentTool === 'eraser') {
+      const container = containerRef.current;
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        setCursorPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+      }
+    }
+  }, [isDrawer, currentTool]);
+
+  const handlePointerLeave = useCallback((e: React.PointerEvent) => {
+    setCursorPos(null);
+    if (isDrawer && isDrawingRef.current) {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        canvas.releasePointerCapture(e.pointerId);
+      }
+      isDrawingRef.current = false;
+      endStroke();
+    }
+  }, [isDrawer, endStroke]);
+
   const getCursorClass = (): string => {
     if (!isDrawer) return 'cursor-not-allowed';
+    if (currentTool === 'eraser') return 'cursor-none';
 
     const cursorMap: Record<ToolType, string> = {
       pencil: 'cursor-pencil',
       pen: 'cursor-pencil',
       brush: 'cursor-crosshair',
-      eraser: 'cursor-eraser',
+      neon: 'cursor-crosshair',
+      glitter: 'cursor-crosshair',
+      eraser: 'cursor-none',
       fill: 'cursor-fill',
     };
 
     return cursorMap[currentTool] || 'cursor-crosshair';
   };
+
+  // Calculate the eraser circle size in CSS pixels (account for canvas scaling)
+  const getEraserDisplaySize = (): number => {
+    const canvas = canvasRef.current;
+    if (!canvas) return size;
+    const rect = canvas.getBoundingClientRect();
+    return size * (rect.width / canvas.width);
+  };
+
+  const showEraserCursor = isDrawer && currentTool === 'eraser' && cursorPos !== null;
 
   return (
     <div
@@ -135,10 +180,22 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>(functi
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        onPointerLeave={handlePointerUp}
+        onPointerEnter={handlePointerEnter}
+        onPointerLeave={handlePointerLeave}
       />
       {!isDrawer && (
         <div className="absolute inset-0 bg-transparent" />
+      )}
+      {showEraserCursor && (
+        <div
+          className="pointer-events-none absolute rounded-full border-2 border-gray-500"
+          style={{
+            width: getEraserDisplaySize(),
+            height: getEraserDisplaySize(),
+            left: cursorPos.x - getEraserDisplaySize() / 2,
+            top: cursorPos.y - getEraserDisplaySize() / 2,
+          }}
+        />
       )}
     </div>
   );

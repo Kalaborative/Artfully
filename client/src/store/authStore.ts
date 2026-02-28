@@ -32,6 +32,7 @@ function mapDocumentToProfile(doc: any): UserProfile {
     avatarUrl: doc.avatarUrl,
     countryCode: doc.countryCode,
     biography: doc.biography,
+    activeTheme: doc.activeTheme,
     isOnline: doc.isOnline,
     lastSeenAt: doc.lastSeenAt,
     createdAt: doc.createdAt,
@@ -45,6 +46,7 @@ function mapDocumentToStatistics(doc: any): UserStatistics {
     gamesPlayed: doc.gamesPlayed || 0,
     gamesWon: doc.gamesWon || 0,
     totalPoints: doc.totalPoints || 0,
+    coins: doc.coins || 0,
     worldRank: doc.worldRank,
     countryRank: doc.countryRank,
   };

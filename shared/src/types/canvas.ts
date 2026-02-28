@@ -1,4 +1,4 @@
-export type ToolType = 'pencil' | 'pen' | 'brush' | 'fill' | 'eraser';
+export type ToolType = 'pencil' | 'pen' | 'brush' | 'neon' | 'glitter' | 'fill' | 'eraser';
 
 export interface Point {
   x: number;
@@ -90,6 +90,8 @@ export const TOOL_DEFAULTS: Record<ToolType, Partial<ToolSettings>> = {
   pencil: { size: 2, opacity: 1 },
   pen: { size: 4, opacity: 1 },
   brush: { size: 20, opacity: 0.7 },
+  neon: { size: 6, opacity: 1 },
+  glitter: { size: 8, opacity: 1 },
   fill: { opacity: 1 },
   eraser: { size: 20, opacity: 1 }
 };

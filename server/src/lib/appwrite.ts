@@ -27,6 +27,7 @@ export const COLLECTIONS = {
   WALL_MESSAGES: 'wall_messages',
   NOTIFICATIONS: 'notifications',
   HALL_OF_FAME: 'hall_of_fame',
+  USER_PURCHASES: 'user_purchases',
 } as const;
 
 export const BUCKETS = {

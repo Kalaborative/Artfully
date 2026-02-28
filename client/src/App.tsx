@@ -14,6 +14,7 @@ import PlayerProfilePage from './pages/PlayerProfilePage';
 import PracticePage from './pages/PracticePage';
 import AdminPage from './pages/AdminPage';
 import HallOfFamePage from './pages/HallOfFamePage';
+import ShopPage from './pages/ShopPage';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
@@ -93,6 +94,14 @@ function App() {
           element={
             <ProtectedRoute>
               <PracticePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="shop"
+          element={
+            <ProtectedRoute>
+              <ShopPage />
             </ProtectedRoute>
           }
         />

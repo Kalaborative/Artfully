@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { getSocket } from '../lib/socket';
+import { clearGlitterCache } from '../components/canvas/drawUtils';
 import type {
   ToolType,
   Stroke,
@@ -200,6 +201,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
   clear: () => {
     set({ strokes: [], fillActions: [], undoStack: [] });
+    clearGlitterCache();
 
     const socket = getSocket();
     socket.emit('canvas:clear');
@@ -300,6 +302,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
   handleRemoteClear: () => {
     set({ strokes: [], fillActions: [], undoStack: [] });
+    clearGlitterCache();
   },
 
   handleRemoteUndo: (actionId: string) => {
@@ -373,5 +376,6 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       size: TOOL_DEFAULTS.pen.size!,
       opacity: TOOL_DEFAULTS.pen.opacity!
     });
+    clearGlitterCache();
   }
 }));

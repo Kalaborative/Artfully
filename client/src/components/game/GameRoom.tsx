@@ -3,6 +3,7 @@ import { useGameStore } from '../../store/gameStore';
 import { useCanvasStore } from '../../store/canvasStore';
 import { useChatStore } from '../../store/chatStore';
 import { useAuthStore } from '../../store/authStore';
+import { useShopStore } from '../../store/shopStore';
 import DrawingCanvas from '../canvas/DrawingCanvas';
 import CanvasToolbar from '../canvas/CanvasToolbar';
 import ColorPalette from '../canvas/ColorPalette';
@@ -21,8 +22,10 @@ export default function GameRoom() {
   const { setupListeners: setupCanvasListeners, reset: resetCanvas } = useCanvasStore();
   const { setupListeners: setupChatListeners, reset: resetChat } = useChatStore();
   const { user } = useAuthStore();
+  const { fetchPurchases } = useShopStore();
 
   useEffect(() => {
+    fetchPurchases();
     const unsubCanvas = setupCanvasListeners();
     const unsubChat = setupChatListeners();
 

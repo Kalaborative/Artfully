@@ -7,6 +7,7 @@ export interface UserProfile {
   avatarUrl?: string;
   countryCode?: string;
   biography?: string;
+  activeTheme?: string;
   isOnline: boolean;
   lastSeenAt?: string;
   createdAt: string;
@@ -18,6 +19,7 @@ export interface UserStatistics {
   gamesPlayed: number;
   gamesWon: number;
   totalPoints: number;
+  coins: number;
   worldRank?: number;
   countryRank?: number;
 }
@@ -45,6 +47,7 @@ export interface UpdateProfileData {
   biography?: string;
   avatarFileId?: string;
   avatarUrl?: string;
+  activeTheme?: string;
 }
 
 export interface SavedDrawing {

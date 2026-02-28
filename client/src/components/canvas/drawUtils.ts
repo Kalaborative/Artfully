@@ -400,6 +400,200 @@ export function drawBrushStroke(ctx: CanvasRenderingContext2D, stroke: Stroke): 
   ctx.restore();
 }
 
+// Neon brush - glowing stroke with outer glow and bright core
+export function drawNeonStroke(ctx: CanvasRenderingContext2D, stroke: Stroke): void {
+  if (stroke.points.length < 2) return;
+
+  const { color, size, opacity } = stroke.style;
+
+  ctx.save();
+  ctx.globalAlpha = opacity;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  // Helper to trace the stroke path
+  const tracePath = () => {
+    ctx.beginPath();
+    ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+    for (let i = 1; i < stroke.points.length - 1; i++) {
+      const xc = (stroke.points[i].x + stroke.points[i + 1].x) / 2;
+      const yc = (stroke.points[i].y + stroke.points[i + 1].y) / 2;
+      ctx.quadraticCurveTo(stroke.points[i].x, stroke.points[i].y, xc, yc);
+    }
+    const last = stroke.points[stroke.points.length - 1];
+    ctx.lineTo(last.x, last.y);
+  };
+
+  // Outer glow layer (wide, semi-transparent)
+  ctx.shadowColor = color;
+  ctx.shadowBlur = size * 3;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = size * 1.5;
+  ctx.globalAlpha = opacity * 0.4;
+  tracePath();
+  ctx.stroke();
+
+  // Mid glow layer
+  ctx.shadowBlur = size * 1.5;
+  ctx.lineWidth = size;
+  ctx.globalAlpha = opacity * 0.7;
+  tracePath();
+  ctx.stroke();
+
+  // Bright core (white-ish center)
+  ctx.shadowBlur = size;
+  ctx.shadowColor = '#ffffff';
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = size * 0.4;
+  ctx.globalAlpha = opacity * 0.9;
+  tracePath();
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+// Seeded random for deterministic glitter from stroke ID
+function seededRandom(seed: number): () => number {
+  let s = seed;
+  return () => {
+    s = (s * 16807 + 0) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+function hashString(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
+
+// Glitter stroke cache: offscreen canvases keyed by stroke id + point count
+const glitterCache = new Map<string, HTMLCanvasElement>();
+const GLITTER_CACHE_MAX = 30;
+
+function renderGlitterToCanvas(stroke: Stroke, w: number, h: number): HTMLCanvasElement {
+  const offscreen = document.createElement('canvas');
+  offscreen.width = w;
+  offscreen.height = h;
+  const ctx = offscreen.getContext('2d')!;
+
+  const { color, size, opacity } = stroke.style;
+  const rand = seededRandom(hashString(stroke.id));
+
+  // Draw base stroke (thin, semi-transparent)
+  ctx.globalAlpha = opacity * 0.5;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = size * 0.6;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  ctx.beginPath();
+  ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+  for (let i = 1; i < stroke.points.length - 1; i++) {
+    const xc = (stroke.points[i].x + stroke.points[i + 1].x) / 2;
+    const yc = (stroke.points[i].y + stroke.points[i + 1].y) / 2;
+    ctx.quadraticCurveTo(stroke.points[i].x, stroke.points[i].y, xc, yc);
+  }
+  const last = stroke.points[stroke.points.length - 1];
+  ctx.lineTo(last.x, last.y);
+  ctx.stroke();
+
+  // Parse base color
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color);
+  const baseR = result ? parseInt(result[1], 16) : 0;
+  const baseG = result ? parseInt(result[2], 16) : 0;
+  const baseB = result ? parseInt(result[3], 16) : 0;
+
+  // Scatter glitter particles along the stroke
+  const spread = size * 2;
+  const spacing = Math.max(2, size * 0.4);
+
+  for (let i = 1; i < stroke.points.length; i++) {
+    const p0 = stroke.points[i - 1];
+    const p1 = stroke.points[i];
+    const dx = p1.x - p0.x;
+    const dy = p1.y - p0.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const steps = Math.ceil(dist / spacing);
+
+    for (let j = 0; j <= steps; j++) {
+      const t = steps === 0 ? 0 : j / steps;
+      const cx = p0.x + dx * t;
+      const cy = p0.y + dy * t;
+
+      const count = 2 + Math.floor(rand() * 2);
+      for (let k = 0; k < count; k++) {
+        const angle = rand() * Math.PI * 2;
+        const radius = rand() * spread;
+        const px = cx + Math.cos(angle) * radius;
+        const py = cy + Math.sin(angle) * radius;
+        const particleSize = 0.5 + rand() * (size * 0.25);
+        const sparkleAlpha = 0.4 + rand() * 0.6;
+
+        const mix = 0.3 + rand() * 0.7;
+        const r = Math.round(baseR + (255 - baseR) * mix);
+        const g = Math.round(baseG + (255 - baseG) * mix);
+        const b = Math.round(baseB + (255 - baseB) * mix);
+
+        ctx.globalAlpha = opacity * sparkleAlpha;
+        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+
+        if (rand() > 0.3) {
+          ctx.beginPath();
+          ctx.arc(px, py, particleSize, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          const s = particleSize * 1.5;
+          ctx.beginPath();
+          ctx.moveTo(px, py - s);
+          ctx.lineTo(px + s * 0.4, py);
+          ctx.lineTo(px, py + s);
+          ctx.lineTo(px - s * 0.4, py);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.moveTo(px - s, py);
+          ctx.lineTo(px, py + s * 0.4);
+          ctx.lineTo(px + s, py);
+          ctx.lineTo(px, py - s * 0.4);
+          ctx.closePath();
+          ctx.fill();
+        }
+      }
+    }
+  }
+
+  return offscreen;
+}
+
+// Glitter brush - cached offscreen render for performance
+export function drawGlitterStroke(ctx: CanvasRenderingContext2D, stroke: Stroke): void {
+  if (stroke.points.length < 2) return;
+
+  const cacheKey = `${stroke.id}_${stroke.points.length}`;
+  let cached = glitterCache.get(cacheKey);
+
+  if (!cached) {
+    // Evict oldest entries if cache is full
+    if (glitterCache.size >= GLITTER_CACHE_MAX) {
+      const firstKey = glitterCache.keys().next().value;
+      if (firstKey) glitterCache.delete(firstKey);
+    }
+    cached = renderGlitterToCanvas(stroke, ctx.canvas.width, ctx.canvas.height);
+    glitterCache.set(cacheKey, cached);
+  }
+
+  ctx.drawImage(cached, 0, 0);
+}
+
+// Clear glitter cache (called on canvas clear/reset)
+export function clearGlitterCache(): void {
+  glitterCache.clear();
+}
+
 // Dispatch to the correct stroke renderer
 export function drawStroke(ctx: CanvasRenderingContext2D, stroke: Stroke): void {
   if (stroke.points.length === 0) return;
@@ -409,6 +603,12 @@ export function drawStroke(ctx: CanvasRenderingContext2D, stroke: Stroke): void 
     drawPenStroke(ctx, stroke);
   } else if (stroke.style.tool === 'brush') {
     drawBrushStroke(ctx, stroke);
+  } else if (stroke.style.tool === 'neon') {
+    if (stroke.points.length < 2) return;
+    drawNeonStroke(ctx, stroke);
+  } else if (stroke.style.tool === 'glitter') {
+    if (stroke.points.length < 2) return;
+    drawGlitterStroke(ctx, stroke);
   } else {
     if (stroke.points.length < 2) return;
     drawStandardStroke(ctx, stroke);
