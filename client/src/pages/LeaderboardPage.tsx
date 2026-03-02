@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import Avatar from '../components/ui/Avatar';
+import DisplayName from '../components/ui/DisplayName';
 import { CountryFlag } from '../components/profile/CountrySelector';
 import { Trophy, Medal, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { LeaderboardEntry } from '@artfully/shared';
@@ -79,13 +80,13 @@ export default function LeaderboardPage() {
                     <div className={`w-8 text-center ${config.color}`}>
                       {globalRank < 3 ? config.icon : entry.rank}
                     </div>
-                    <Avatar src={entry.avatarUrl} alt={entry.username} />
+                    <Avatar src={entry.avatarUrl} alt={entry.username} frame={(entry.activeFrame as any) || null} />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         {entry.countryCode && (
                           <CountryFlag code={entry.countryCode} size={20} />
                         )}
-                        <span className="font-semibold">{entry.username}</span>
+                        <span className="font-semibold"><DisplayName name={entry.username} effect={entry.activeNameEffect} /></span>
                       </div>
                     </div>
                     <div className="text-right">

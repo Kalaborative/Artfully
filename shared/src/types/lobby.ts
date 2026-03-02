@@ -23,6 +23,8 @@ export interface LobbyPlayer {
   username: string;
   displayName: string;
   avatarUrl?: string;
+  activeFrame?: string;
+  activeNameEffect?: string;
   countryCode?: string;
   worldRank?: number;
   isHost: boolean;

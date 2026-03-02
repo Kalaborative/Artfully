@@ -1,5 +1,6 @@
 import Card from '../ui/Card';
 import Avatar from '../ui/Avatar';
+import DisplayName from '../ui/DisplayName';
 import type { GamePlayer } from '@artfully/shared';
 import { Pencil, CheckCircle, Crown, X } from 'lucide-react';
 
@@ -33,14 +34,14 @@ export default function GameLeaderboard({ players, hostId, currentUserId, onKick
               {index + 1}
             </span>
             <div className="relative">
-              <Avatar src={player.avatarUrl} size="sm" />
+              <Avatar src={player.avatarUrl} size="sm" frame={(player.activeFrame as any) || null} />
               {index === 0 && (
                 <Crown className="absolute -top-1 -right-1 w-3 h-3 text-yellow-500" />
               )}
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-sm font-medium truncate">
-                {player.displayName}
+                <DisplayName name={player.displayName} effect={player.activeNameEffect} />
               </div>
             </div>
             <div className="flex items-center gap-1">

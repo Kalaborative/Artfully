@@ -1,13 +1,16 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLobbyStore } from '../../store/lobbyStore';
 import { useAuthStore } from '../../store/authStore';
 import { CountryFlag } from '../profile/CountrySelector';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Avatar from '../ui/Avatar';
+import DisplayName from '../ui/DisplayName';
 import { Copy, Check, Users, Crown, Clock, Play, UserMinus } from 'lucide-react';
 
 export default function WaitingRoom() {
+  const navigate = useNavigate();
   const { lobby, timerSeconds, startGame, leaveLobby, kickPlayer } = useLobbyStore();
   const { user } = useAuthStore();
   const [copied, setCopied] = useState(false);
@@ -87,10 +90,10 @@ export default function WaitingRoom() {
               key={player.userId}
               className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
             >
-              <Avatar src={player.avatarUrl} alt={player.displayName} />
+              <Avatar src={player.avatarUrl} alt={player.displayName} frame={(player.activeFrame as any) || null} />
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-medium">{player.displayName}</span>
+                  <span className="font-medium"><DisplayName name={player.displayName} effect={player.activeNameEffect} /></span>
                   {player.isHost && (
                     <Crown className="w-4 h-4 text-yellow-500" />
                   )}
@@ -133,7 +136,7 @@ export default function WaitingRoom() {
 
       {/* Actions */}
       <div className="flex gap-3 justify-center">
-        <Button variant="secondary" onClick={leaveLobby}>
+        <Button variant="secondary" onClick={() => { leaveLobby(); navigate('/', { replace: true }); }}>
           Leave Lobby
         </Button>
         {isHost && (

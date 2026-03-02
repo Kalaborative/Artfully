@@ -54,6 +54,8 @@ router.get('/', async (req, res) => {
         username: profile?.username || 'Unknown',
         displayName: profile?.displayName || profile?.username || 'Unknown',
         avatarUrl: profile?.avatarUrl,
+        activeFrame: profile?.activeFrame,
+        activeNameEffect: profile?.activeNameEffect,
         countryCode: profile?.countryCode,
         totalPoints: stats.totalPoints,
         gamesPlayed: stats.gamesPlayed,

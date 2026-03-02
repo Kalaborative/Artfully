@@ -7,16 +7,13 @@ import Input from '../components/ui/Input';
 import AvatarUploader from '../components/profile/AvatarUploader';
 import CountrySelector, { CountryFlag } from '../components/profile/CountrySelector';
 import DrawingGallery from '../components/profile/DrawingGallery';
-import { User, Trophy, Target, Award, Edit2, Save, X, AlertCircle, Palette, Check } from 'lucide-react';
+import { User, Trophy, Target, Award, Edit2, Save, X, AlertCircle } from 'lucide-react';
 import MessageWall from '../components/profile/MessageWall';
-import { useThemeStore } from '../store/themeStore';
-import { useShopStore } from '../store/shopStore';
 import type { SavedDrawing } from '@artfully/shared';
+import type { AvatarFrame } from '../components/ui/Avatar';
 
 export default function ProfilePage() {
   const { user, profile, statistics, updateProfile, refreshProfile } = useAuthStore();
-  const { activeTheme, setTheme } = useThemeStore();
-  const { purchasedItems } = useShopStore();
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState(profile?.displayName || '');
   const [countryCode, setCountryCode] = useState(profile?.countryCode || '');
@@ -24,6 +21,7 @@ export default function ProfilePage() {
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [drawings, setDrawings] = useState<SavedDrawing[]>([]);
+  const activeFrame = (profile?.activeFrame || null) as AvatarFrame;
 
   const fetchDrawings = useCallback(async () => {
     try {
@@ -189,6 +187,7 @@ export default function ProfilePage() {
                 });
               }}
               size="xl"
+              frame={activeFrame}
             />
 
             {isEditing ? (
@@ -290,121 +289,6 @@ export default function ProfilePage() {
               label="Country Rank"
               value={statistics?.countryRank ? `#${statistics.countryRank}` : '-'}
             />
-          </div>
-        </Card>
-      </div>
-
-      {/* Theme Section */}
-      <div className="mt-6">
-        <Card>
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Palette className="w-5 h-5 text-primary-500" />
-            Themes
-          </h3>
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {/* Default Theme */}
-            <button
-              onClick={async () => {
-                setTheme(null);
-                await updateProfile({ activeTheme: '' });
-              }}
-              className={`relative rounded-xl border-2 p-4 text-left transition-all ${
-                !activeTheme
-                  ? 'border-primary-500 bg-primary-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              {!activeTheme && (
-                <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary-500 text-white flex items-center justify-center">
-                  <Check className="w-4 h-4" />
-                </div>
-              )}
-              <div className="flex gap-2 mb-2">
-                <div className="w-6 h-6 rounded-full bg-[#14b8a6]" />
-                <div className="w-6 h-6 rounded-full bg-[#06b6d4]" />
-                <div className="w-6 h-6 rounded-full bg-[#d946ef]" />
-              </div>
-              <p className="font-semibold">Default</p>
-              <p className="text-sm text-gray-500">Teal & Cyan</p>
-            </button>
-
-            {/* Ocean Theme */}
-            {purchasedItems.includes('ocean-theme') ? (
-              <button
-                onClick={async () => {
-                  const next = activeTheme === 'ocean' ? null : 'ocean';
-                  setTheme(next);
-                  await updateProfile({ activeTheme: next || '' });
-                }}
-                className={`relative rounded-xl border-2 p-4 text-left transition-all ${
-                  activeTheme === 'ocean'
-                    ? 'border-primary-500 bg-primary-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                {activeTheme === 'ocean' && (
-                  <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary-500 text-white flex items-center justify-center">
-                    <Check className="w-4 h-4" />
-                  </div>
-                )}
-                <div className="flex gap-2 mb-2">
-                  <div className="w-6 h-6 rounded-full bg-[#3b82f6]" />
-                  <div className="w-6 h-6 rounded-full bg-[#06b6d4]" />
-                  <div className="w-6 h-6 rounded-full bg-[#22c55e]" />
-                </div>
-                <p className="font-semibold">🌊 Ocean</p>
-                <p className="text-sm text-gray-500">Deep Blue & Cyan</p>
-              </button>
-            ) : (
-              <div className="rounded-xl border-2 border-dashed border-gray-200 p-4 opacity-60">
-                <div className="flex gap-2 mb-2">
-                  <div className="w-6 h-6 rounded-full bg-gray-300" />
-                  <div className="w-6 h-6 rounded-full bg-gray-300" />
-                  <div className="w-6 h-6 rounded-full bg-gray-300" />
-                </div>
-                <p className="font-semibold">🌊 Ocean</p>
-                <p className="text-sm text-gray-400">Purchase in Shop to unlock</p>
-              </div>
-            )}
-
-            {/* Sunset Theme */}
-            {purchasedItems.includes('sunset-theme') ? (
-              <button
-                onClick={async () => {
-                  const next = activeTheme === 'sunset' ? null : 'sunset';
-                  setTheme(next);
-                  await updateProfile({ activeTheme: next || '' });
-                }}
-                className={`relative rounded-xl border-2 p-4 text-left transition-all ${
-                  activeTheme === 'sunset'
-                    ? 'border-primary-500 bg-primary-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                {activeTheme === 'sunset' && (
-                  <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary-500 text-white flex items-center justify-center">
-                    <Check className="w-4 h-4" />
-                  </div>
-                )}
-                <div className="flex gap-2 mb-2">
-                  <div className="w-6 h-6 rounded-full bg-[#f97316]" />
-                  <div className="w-6 h-6 rounded-full bg-[#f43f5e]" />
-                  <div className="w-6 h-6 rounded-full bg-[#e11d48]" />
-                </div>
-                <p className="font-semibold">🌅 Sunset</p>
-                <p className="text-sm text-gray-500">Warm Orange & Coral</p>
-              </button>
-            ) : (
-              <div className="rounded-xl border-2 border-dashed border-gray-200 p-4 opacity-60">
-                <div className="flex gap-2 mb-2">
-                  <div className="w-6 h-6 rounded-full bg-gray-300" />
-                  <div className="w-6 h-6 rounded-full bg-gray-300" />
-                  <div className="w-6 h-6 rounded-full bg-gray-300" />
-                </div>
-                <p className="font-semibold">🌅 Sunset</p>
-                <p className="text-sm text-gray-400">Purchase in Shop to unlock</p>
-              </div>
-            )}
           </div>
         </Card>
       </div>

@@ -1,12 +1,14 @@
 import { useState, useRef } from 'react';
 import { storage, BUCKETS, ID } from '../../lib/appwrite';
 import { Camera, Loader2, X } from 'lucide-react';
+import type { AvatarFrame } from '../ui/Avatar';
 
 interface AvatarUploaderProps {
   currentAvatarUrl?: string;
   currentFileId?: string;
   onUpload: (fileId: string, fileUrl: string) => Promise<void>;
   size?: 'md' | 'lg' | 'xl';
+  frame?: AvatarFrame;
 }
 
 const sizeClasses = {
@@ -21,11 +23,23 @@ const iconSizes = {
   xl: 'w-10 h-10',
 };
 
+const frameStyles: Record<string, string> = {
+  'gold-frame': 'animate-gold-frame-spin shadow-lg shadow-yellow-500/40',
+  'rainbow-frame': 'bg-gradient-to-br from-red-500 via-green-500 to-blue-500 shadow-lg shadow-purple-500/30',
+};
+
+const framepadding = {
+  md: 'p-[3px]',
+  lg: 'p-[3px]',
+  xl: 'p-[4px]',
+};
+
 export default function AvatarUploader({
   currentAvatarUrl,
   currentFileId,
   onUpload,
   size = 'xl',
+  frame,
 }: AvatarUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
@@ -107,8 +121,11 @@ export default function AvatarUploader({
 
   const displayUrl = previewUrl || currentAvatarUrl;
 
+  const frameClass = frame && frameStyles[frame] ? `rounded-full ${framepadding[size]} ${frameStyles[frame]}` : '';
+
   return (
     <div className="relative inline-block">
+      <div className={frameClass}>
       <button
         type="button"
         onClick={handleClick}
@@ -166,6 +183,7 @@ export default function AvatarUploader({
           </div>
         )}
       </button>
+      </div>
 
       {/* Hidden File Input */}
       <input

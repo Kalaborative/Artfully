@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import Avatar from '../components/ui/Avatar';
+import DisplayName from '../components/ui/DisplayName';
 import { CountryFlag } from '../components/profile/CountrySelector';
 import DrawingGallery from '../components/profile/DrawingGallery';
 import { User, Trophy, Target, Award, ArrowLeft, UserX } from 'lucide-react';
@@ -119,12 +120,12 @@ export default function PlayerProfilePage() {
         {/* Profile Card */}
         <Card className="md:col-span-1">
           <div className="text-center">
-            <Avatar src={profile.avatarUrl} alt={profile.displayName} size="xl" className="mx-auto" />
+            <Avatar src={profile.avatarUrl} alt={profile.displayName} size="xl" className="mx-auto" frame={(profile.activeFrame as any) || null} />
             <h2 className="text-xl font-bold mt-4 flex items-center justify-center gap-2">
               {profile.countryCode && (
                 <CountryFlag code={profile.countryCode} size={24} />
               )}
-              {profile.displayName}
+              <DisplayName name={profile.displayName} effect={profile.activeNameEffect} />
             </h2>
             <p className="text-gray-500">@{profile.username}</p>
           </div>

@@ -33,6 +33,8 @@ function mapDocumentToProfile(doc: any): UserProfile {
     countryCode: doc.countryCode,
     biography: doc.biography,
     activeTheme: doc.activeTheme,
+    activeFrame: doc.activeFrame,
+    activeNameEffect: doc.activeNameEffect,
     isOnline: doc.isOnline,
     lastSeenAt: doc.lastSeenAt,
     createdAt: doc.createdAt,

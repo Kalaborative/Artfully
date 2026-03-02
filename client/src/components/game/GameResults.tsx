@@ -4,6 +4,7 @@ import confetti from 'canvas-confetti';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Avatar from '../ui/Avatar';
+import DisplayName from '../ui/DisplayName';
 import type { GameResults as GameResultsType } from '@artfully/shared';
 import { Trophy, Medal, Star, Home } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
@@ -89,9 +90,9 @@ export default function GameResults({ results }: GameResultsProps) {
                 <span className="text-2xl font-bold text-gray-300">
                   #{player.rank}
                 </span>
-                <Avatar src={player.avatarUrl} size={index === 0 ? 'lg' : 'md'} />
+                <Avatar src={player.avatarUrl} size={index === 0 ? 'lg' : 'md'} frame={(player.activeFrame as any) || null} />
                 <div className="flex-1 text-left">
-                  <div className="font-bold">{player.displayName}</div>
+                  <div className="font-bold"><DisplayName name={player.displayName} effect={player.activeNameEffect} /></div>
                   <div className="text-sm text-gray-500">
                     {player.correctGuesses} guessed • {player.firstGuesses} first
                   </div>

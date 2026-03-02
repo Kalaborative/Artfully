@@ -298,3 +298,83 @@
 .cursor-fill {
   cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2"><path d="m19 11-8-8-8.6 8.6a2 2 0 0 0 0 2.8l5.2 5.2c.8.8 2 .8 2.8 0L19 11Z"/><path d="m5 2 5 5"/><path d="M2 13h15"/><path d="M22 20a2 2 0 1 1-4 0c0-1.6 1.7-2.4 2-4 .3 1.6 2 2.4 2 4Z"/></svg>') 0 24, crosshair;
 }
+
+/* Gold frame — animated spinning conic gradient */
+@property --gold-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* Fire Name effect */
+.fire-name {
+  position: relative;
+  background: linear-gradient(to right,
+    #c45309 0%,
+    #ff5722 25%,
+    #ffffcc 50%,
+    #ff5722 75%,
+    #c45309 100%
+  );
+  background-size: 300% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: fireGradient 6s linear infinite;
+  font-weight: 700;
+  z-index: 1;
+}
+
+.fire-name::before {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  color: transparent;
+  animation:
+    fireSway 4s ease-in-out infinite alternate,
+    fireGlow 2.5s ease-in-out infinite alternate;
+  filter: blur(3px);
+}
+
+@keyframes fireGradient {
+  0% { background-position: 100% center; }
+  100% { background-position: -200% center; }
+}
+
+@keyframes fireGlow {
+  0% {
+    text-shadow:
+      0 0 5px #ffeb3b,
+      0 -2px 12px #ff9800,
+      0 -5px 20px #ff5722;
+  }
+  100% {
+    text-shadow:
+      0 0 12px #ffeb3b,
+      0 -4px 18px #ff9800,
+      0 -12px 35px #ff5722;
+  }
+}
+
+@keyframes fireSway {
+  0% { transform: skewX(-1.5deg); opacity: 0.7; }
+  100% { transform: skewX(1.5deg); opacity: 0.9; }
+}
+
+.animate-gold-frame-spin {
+  background: conic-gradient(
+    from var(--gold-angle),
+    #fde68a,
+    #f59e0b,
+    #b45309,
+    #fbbf24,
+    #fde68a,
+    #d97706,
+    #f59e0b,
+    #fde68a
+  );
+}

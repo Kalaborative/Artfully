@@ -94,6 +94,8 @@ export interface GamePlayer {
   username: string;
   displayName: string;
   avatarUrl?: string;
+  activeFrame?: string;
+  activeNameEffect?: string;
   countryCode?: string;
   points: number;
   correctGuesses: number;
@@ -117,6 +119,8 @@ export interface GamePlayerResult {
   username: string;
   displayName: string;
   avatarUrl?: string;
+  activeFrame?: string;
+  activeNameEffect?: string;
   countryCode?: string;
   rank: number;
   totalPoints: number;

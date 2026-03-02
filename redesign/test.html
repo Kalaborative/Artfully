@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .candle-container {
+            position: relative;
+            font-size: 85px;
+            font-weight: 900;
+
+            /* High Contrast Gradient Spectrum */
+            background: linear-gradient(to right,
+                    #c45309 0%,
+                    /* Very dark brown/orange */
+                    #ff5722 25%,
+                    /* Deep Flame Orange */
+                    #ffffcc 50%,
+                    /* Bright Ivory Highlight (The "Spark") */
+                    #ff5722 75%,
+                    /* Deep Flame Orange */
+                    #c45309 100%
+                    /* Back to dark */
+                );
+
+            background-size: 300% auto;
+            /* Wider background = sharper highlight */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+
+            /* Slower animation makes the highlight feel more deliberate */
+            animation: moveGradient 6s linear infinite;
+            z-index: 1;
+        }
+
+        .candle-container::before {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            color: transparent;
+
+            animation:
+                sway 4s ease-in-out infinite alternate,
+                glow 2.5s ease-in-out infinite alternate;
+
+            filter: blur(3px);
+        }
+
+        /* Moving the 300% wide gradient */
+        @keyframes moveGradient {
+            0% {
+                background-position: 100% center;
+            }
+
+            100% {
+                background-position: -200% center;
+            }
+        }
+
+        @keyframes glow {
+            0% {
+                text-shadow:
+                    0 0 5px #ffeb3b,
+                    0 -2px 12px #ff9800,
+                    0 -5px 20px #ff5722;
+            }
+
+            100% {
+                text-shadow:
+                    0 0 12px #ffeb3b,
+                    0 -4px 18px #ff9800,
+                    0 -12px 35px #ff5722;
+            }
+        }
+
+        @keyframes sway {
+            0% {
+                transform: skewX(-1.5deg);
+                opacity: 0.7;
+            }
+
+            100% {
+                transform: skewX(1.5deg);
+                opacity: 0.9;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="candle-container" data-text="Candlelight">
+        Candlelight
+    </div>
+
+</body>
+
+</html>

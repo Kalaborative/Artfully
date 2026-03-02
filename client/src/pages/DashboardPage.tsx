@@ -8,6 +8,7 @@ import MatchmakingModal from '../components/lobby/MatchmakingModal';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Avatar from '../components/ui/Avatar';
+import DisplayName from '../components/ui/DisplayName';
 import AnnouncementModal from '../components/ui/AnnouncementModal';
 import type { GameMode } from '@artfully/shared';
 import {
@@ -21,7 +22,10 @@ import {
   MessageSquare,
   Trophy,
   ShoppingBag,
+  Shield,
 } from 'lucide-react';
+
+const ADMIN_IDS = (import.meta.env.VITE_ADMIN_USER_IDS || '').split(',').map((s: string) => s.trim()).filter(Boolean);
 
 export default function DashboardPage() {
   const { user, profile } = useAuthStore();
@@ -99,11 +103,14 @@ export default function DashboardPage() {
       {/* ── Left Navigation Panel ─────────────────────────────────────── */}
       <aside className="w-full md:w-64 shrink-0 border-r border-slate-200 bg-white flex flex-col">
         {/* User info */}
-        <div className="px-6 pt-6 pb-4 border-b border-slate-100">
+        <div
+          className="px-6 pt-6 pb-4 border-b border-slate-100 cursor-pointer hover:bg-gray-50 transition-colors"
+          onClick={() => navigate('/profile')}
+        >
           <div className="flex items-center gap-3">
-            <Avatar src={profile?.avatarUrl} alt={displayName} size="sm" />
+            <Avatar src={profile?.avatarUrl} alt={displayName} size="sm" frame={(profile?.activeFrame as any) || null} />
             <div className="min-w-0">
-              <div className="font-bold text-gray-900 truncate">{displayName}</div>
+              <div className="font-bold text-gray-900 truncate"><DisplayName name={displayName} effect={profile?.activeNameEffect} /></div>
               <div className="text-xs text-gray-400 truncate">@{username}</div>
             </div>
           </div>
@@ -158,6 +165,19 @@ export default function DashboardPage() {
             <span className="font-semibold text-sm">Shop</span>
             <ChevronRight className="w-4 h-4 text-gray-300 ml-auto group-hover:text-pink-400" />
           </button>
+
+          {user && ADMIN_IDS.includes(user.$id) && (
+            <button
+              onClick={() => navigate('/admin')}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-50 transition-colors text-left text-gray-700 hover:text-red-600 group"
+            >
+              <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center group-hover:bg-red-200 transition-colors">
+                <Shield className="w-4 h-4 text-red-500" />
+              </div>
+              <span className="font-semibold text-sm">Admin Panel</span>
+              <ChevronRight className="w-4 h-4 text-gray-300 ml-auto group-hover:text-red-400" />
+            </button>
+          )}
         </nav>
       </aside>
 
@@ -226,7 +246,7 @@ export default function DashboardPage() {
                   ? 'bg-cyan-400/20 text-cyan-200 border border-cyan-300/30'
                   : 'bg-primary-500/20 text-primary-300 border border-primary-400/30'
             }`}>
-              Welcome back, {displayName}!
+              Welcome back, <DisplayName name={displayName} effect={profile?.activeNameEffect} />!
             </div>
 
             <h1 className="text-5xl font-black text-white mb-5 leading-tight tracking-tight">

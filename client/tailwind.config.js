@@ -68,12 +68,17 @@ export default {
         'bounce-slow': 'bounce 2s infinite',
         'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'wiggle': 'wiggle 1s ease-in-out infinite',
+        'gold-frame-spin': 'goldFrameSpin 3s linear infinite',
       },
       keyframes: {
         wiggle: {
           '0%, 100%': { transform: 'rotate(-3deg)' },
           '50%': { transform: 'rotate(3deg)' },
-        }
+        },
+        goldFrameSpin: {
+          '0%': { '--gold-angle': '0deg' },
+          '100%': { '--gold-angle': '360deg' },
+        },
       },
     },
   },

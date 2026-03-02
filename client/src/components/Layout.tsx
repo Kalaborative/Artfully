@@ -1,17 +1,19 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useThemeStore } from '../store/themeStore';
 import { useShopStore } from '../store/shopStore';
-import { Palette, User, LogOut, Coins } from 'lucide-react';
+import { Palette, Settings, Coins } from 'lucide-react';
 import NotificationBell from './ui/NotificationBell';
 
 export default function Layout() {
-  const { isAuthenticated, user, profile, statistics, logout } = useAuthStore();
+  const { isAuthenticated, profile, statistics, logout } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
   const initTheme = useThemeStore((s) => s.initTheme);
   const { purchasedItems, fetchPurchases } = useShopStore();
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -22,6 +24,22 @@ export default function Layout() {
   useEffect(() => {
     initTheme();
   }, [profile?.activeTheme, purchasedItems, initTheme]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Close dropdown on navigation
+  useEffect(() => {
+    setShowDropdown(false);
+  }, [location.pathname]);
 
   const handleLogout = async () => {
     await logout();
@@ -51,20 +69,31 @@ export default function Layout() {
                       <span>{statistics?.coins ?? 0}</span>
                     </Link>
                     <NotificationBell />
-                    <Link
-                      to="/profile"
-                      className="p-2 rounded-xl bg-primary-50 text-primary-500 hover:bg-primary-100 transition-colors"
-                      title={profile?.displayName || user?.name || 'Profile'}
-                    >
-                      <User className="w-5 h-5" />
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="p-2 rounded-xl bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-500 transition-colors"
-                      title="Logout"
-                    >
-                      <LogOut className="w-5 h-5" />
-                    </button>
+                    <div className="relative" ref={dropdownRef}>
+                      <button
+                        onClick={() => setShowDropdown(!showDropdown)}
+                        className="p-2 rounded-xl bg-primary-50 text-primary-500 hover:bg-primary-100 transition-colors"
+                        title="Settings"
+                      >
+                        <Settings className="w-5 h-5" />
+                      </button>
+                      {showDropdown && (
+                        <div className="absolute right-0 mt-2 w-44 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
+                          <Link
+                            to="/settings"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            Settings
+                          </Link>
+                          <button
+                            onClick={handleLogout}
+                            className="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                          >
+                            Log Out
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </>
                 ) : (
                   <>

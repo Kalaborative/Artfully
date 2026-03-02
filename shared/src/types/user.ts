@@ -8,6 +8,8 @@ export interface UserProfile {
   countryCode?: string;
   biography?: string;
   activeTheme?: string;
+  activeFrame?: string;
+  activeNameEffect?: string;
   isOnline: boolean;
   lastSeenAt?: string;
   createdAt: string;
@@ -34,6 +36,8 @@ export interface LeaderboardEntry {
   username: string;
   displayName: string;
   avatarUrl?: string;
+  activeFrame?: string;
+  activeNameEffect?: string;
   countryCode?: string;
   totalPoints: number;
   gamesPlayed: number;
@@ -48,6 +52,8 @@ export interface UpdateProfileData {
   avatarFileId?: string;
   avatarUrl?: string;
   activeTheme?: string;
+  activeFrame?: string;
+  activeNameEffect?: string;
 }
 
 export interface SavedDrawing {
