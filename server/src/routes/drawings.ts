@@ -1,8 +1,17 @@
 import { Router, Response } from 'express';
 import { databases, storage, DATABASE_ID, COLLECTIONS, BUCKETS, Query } from '../lib/appwrite.js';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
-import { MAX_SAVED_DRAWINGS } from '@artfully/shared';
+import { MAX_SAVED_DRAWINGS, MAX_SAVED_DRAWINGS_UPGRADED } from '@artfully/shared';
 import { ID } from 'node-appwrite';
+
+async function getMaxDrawings(userId: string): Promise<number> {
+  const purchases = await databases.listDocuments(DATABASE_ID, COLLECTIONS.USER_PURCHASES, [
+    Query.equal('userId', userId),
+    Query.equal('itemId', 'extra-save-slots'),
+    Query.limit(1),
+  ]);
+  return purchases.documents.length > 0 ? MAX_SAVED_DRAWINGS_UPGRADED : MAX_SAVED_DRAWINGS;
+}
 
 const router = Router();
 
@@ -21,11 +30,12 @@ function mapDoc(doc: any) {
 router.get('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId!;
+    const maxDrawings = await getMaxDrawings(userId);
 
     const drawings = await databases.listDocuments(DATABASE_ID, COLLECTIONS.SAVED_DRAWINGS, [
       Query.equal('userId', userId),
       Query.orderDesc('createdAt'),
-      Query.limit(MAX_SAVED_DRAWINGS),
+      Query.limit(maxDrawings),
     ]);
 
     res.json(drawings.documents.map(mapDoc));
@@ -50,11 +60,12 @@ router.get('/user/:username', async (req, res) => {
     }
 
     const userId = (profiles.documents[0] as any).userId;
+    const maxDrawings = await getMaxDrawings(userId);
 
     const drawings = await databases.listDocuments(DATABASE_ID, COLLECTIONS.SAVED_DRAWINGS, [
       Query.equal('userId', userId),
       Query.orderDesc('createdAt'),
-      Query.limit(MAX_SAVED_DRAWINGS),
+      Query.limit(maxDrawings),
     ]);
 
     res.json(drawings.documents.map(mapDoc));
@@ -86,14 +97,15 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
     }
 
     // Check current count
+    const maxDrawings = await getMaxDrawings(userId);
     const existing = await databases.listDocuments(DATABASE_ID, COLLECTIONS.SAVED_DRAWINGS, [
       Query.equal('userId', userId),
-      Query.limit(MAX_SAVED_DRAWINGS + 1),
+      Query.limit(maxDrawings + 1),
     ]);
 
-    if (existing.documents.length >= MAX_SAVED_DRAWINGS) {
+    if (existing.documents.length >= maxDrawings) {
       res.status(400).json({
-        error: `Maximum of ${MAX_SAVED_DRAWINGS} drawings allowed. Delete one to save a new one.`,
+        error: `Maximum of ${maxDrawings} drawings allowed. Delete one to save a new one.`,
       });
       return;
     }

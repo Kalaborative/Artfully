@@ -78,6 +78,7 @@ export interface HallOfFameEntry {
 }
 
 export const MAX_SAVED_DRAWINGS = 3;
+export const MAX_SAVED_DRAWINGS_UPGRADED = 10;
 
 export interface WallMessage {
   id: string;

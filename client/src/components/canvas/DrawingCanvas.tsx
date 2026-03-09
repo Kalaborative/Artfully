@@ -1,8 +1,8 @@
 import { useRef, useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { useCanvasStore } from '../../store/canvasStore';
 import { CANVAS_CONFIG } from '@artfully/shared';
-import type { Point, ToolType } from '@artfully/shared';
-import { redrawCanvas } from './drawUtils';
+import type { Point, Stroke, FillAction, ToolType } from '@artfully/shared';
+import { renderToBuffer, appendStrokeToBuffer, appendFillToBuffer, compositeFrame } from './drawUtils';
 
 interface DrawingCanvasProps {
   isDrawer: boolean;
@@ -20,8 +20,11 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>(functi
   height = CANVAS_CONFIG.HEIGHT,
 }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const bufferCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDrawingRef = useRef(false);
+  const prevStrokesRef = useRef<Stroke[]>([]);
+  const prevFillActionsRef = useRef<FillAction[]>([]);
   const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
 
   useImperativeHandle(ref, () => ({
@@ -55,19 +58,66 @@ const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>(functi
     };
   }, []);
 
-  const doRedraw = useCallback(() => {
+  // Initialize the offscreen buffer canvas
+  const getBufferCanvas = useCallback(() => {
+    if (!bufferCanvasRef.current) {
+      bufferCanvasRef.current = document.createElement('canvas');
+      bufferCanvasRef.current.width = width;
+      bufferCanvasRef.current.height = height;
+      // Initial white fill
+      const ctx = bufferCanvasRef.current.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, width, height);
+      }
+    }
+    return bufferCanvasRef.current;
+  }, [width, height]);
+
+  // Update buffer when completed strokes/fills change
+  useEffect(() => {
+    const bufferCanvas = getBufferCanvas();
+    const bufferCtx = bufferCanvas.getContext('2d');
+    if (!bufferCtx) return;
+
+    const prevStrokes = prevStrokesRef.current;
+    const prevFills = prevFillActionsRef.current;
+
+    // Detect if a stroke was appended (most common case: endStroke adds one to the end)
+    const strokeAppended = strokes.length === prevStrokes.length + 1 &&
+      prevStrokes.every((s, i) => s === strokes[i]) &&
+      fillActions === prevFills;
+
+    // Detect if a fill was appended
+    const fillAppended = fillActions.length === prevFills.length + 1 &&
+      prevFills.every((f, i) => f === fillActions[i]) &&
+      strokes === prevStrokes;
+
+    if (strokeAppended) {
+      // Just draw the new stroke onto the existing buffer
+      appendStrokeToBuffer(bufferCtx, strokes[strokes.length - 1]);
+    } else if (fillAppended) {
+      // Just draw the new fill onto the existing buffer
+      appendFillToBuffer(bufferCtx, fillActions[fillActions.length - 1], width, height);
+    } else {
+      // Full re-render (undo, redo, clear, remote sync, etc.)
+      renderToBuffer(bufferCtx, width, height, strokes, fillActions);
+    }
+
+    prevStrokesRef.current = strokes;
+    prevFillActionsRef.current = fillActions;
+  }, [strokes, fillActions, width, height, getBufferCanvas]);
+
+  // Composite buffer + currentStroke to visible canvas
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    redrawCanvas(ctx, canvas.width, canvas.height, strokes, fillActions, currentStroke);
-  }, [strokes, fillActions, currentStroke]);
-
-  useEffect(() => {
-    doRedraw();
-  }, [doRedraw]);
+    const bufferCanvas = getBufferCanvas();
+    compositeFrame(ctx, bufferCanvas, currentStroke);
+  }, [strokes, fillActions, currentStroke, getBufferCanvas]);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     if (!isDrawer) return;

@@ -121,6 +121,7 @@ export interface GamePlayerResult {
   avatarUrl?: string;
   activeFrame?: string;
   activeNameEffect?: string;
+  activeFinisher?: string;
   countryCode?: string;
   rank: number;
   totalPoints: number;

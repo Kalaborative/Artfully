@@ -23,7 +23,7 @@ import type {
 import { GAME_MODE_CONFIG, TIMER_CONFIG, LOBBY_CONFIG } from '@artfully/shared';
 import { PointCalculator } from './PointCalculator.js';
 import { databases, DATABASE_ID, COLLECTIONS, Query } from '../lib/appwrite.js';
-import WORD_BANK from '../data/words.js';
+import { getActiveWords } from '../data/wordStore.js';
 
 interface RoundGuesser {
   userId: string;
@@ -129,6 +129,16 @@ export class GameRoom {
       return;
     }
 
+    // Clear any existing timers from previous round
+    if (this.roundTimer) {
+      clearInterval(this.roundTimer);
+      this.roundTimer = null;
+    }
+    if (this.wordSelectionTimer) {
+      clearTimeout(this.wordSelectionTimer);
+      this.wordSelectionTimer = null;
+    }
+
     // Reset round state
     this.roundGuessers = [];
     this.actions = [];
@@ -219,7 +229,7 @@ export class GameRoom {
     const choices: WordChoice[] = [];
 
     for (const difficulty of difficulties) {
-      const wordsOfDifficulty = WORD_BANK.filter(w => w.difficulty === difficulty);
+      const wordsOfDifficulty = getActiveWords().filter(w => w.difficulty === difficulty);
       if (wordsOfDifficulty.length > 0) {
         const randomWord = wordsOfDifficulty[Math.floor(Math.random() * wordsOfDifficulty.length)];
         choices.push({
@@ -321,6 +331,11 @@ export class GameRoom {
   }
 
   private startDrawingTimer(): void {
+    if (this.roundTimer) {
+      clearInterval(this.roundTimer);
+      this.roundTimer = null;
+    }
+
     this.roundTimer = setInterval(() => {
       if (!this.roundState) return;
 
@@ -495,6 +510,24 @@ export class GameRoom {
       }
     });
 
+    // Look up winner's finisher purchase
+    const winner = sortedPlayers[0];
+    let winnerFinisher: string | undefined;
+    if (winner) {
+      try {
+        const purchases = await databases.listDocuments(DATABASE_ID, COLLECTIONS.USER_PURCHASES, [
+          Query.equal('userId', winner.userId),
+          Query.equal('itemId', 'fireworks-finisher'),
+          Query.limit(1),
+        ]);
+        if (purchases.documents.length > 0) {
+          winnerFinisher = 'fireworks';
+        }
+      } catch (err) {
+        console.warn('[GameRoom] Failed to look up winner finisher:', err);
+      }
+    }
+
     // Emit game ended
     this.io.to(this.roomId).emit('game:ended', {
       results: {
@@ -506,6 +539,7 @@ export class GameRoom {
           avatarUrl: p.avatarUrl,
           activeFrame: p.activeFrame,
           activeNameEffect: p.activeNameEffect,
+          activeFinisher: index === 0 ? winnerFinisher : undefined,
           countryCode: p.countryCode,
           rank: index + 1,
           totalPoints: p.points,

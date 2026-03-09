@@ -14,12 +14,15 @@ const DRAWING_BUCKET = BUCKETS.AVATARS;
 import Button from '../components/ui/Button';
 import { ArrowLeft } from 'lucide-react';
 import type { Stroke, FillAction } from '@artfully/shared';
-import { MAX_SAVED_DRAWINGS } from '@artfully/shared';
+import { MAX_SAVED_DRAWINGS, MAX_SAVED_DRAWINGS_UPGRADED } from '@artfully/shared';
+import { useShopStore } from '../store/shopStore';
 
 export default function PracticePage() {
   const navigate = useNavigate();
   const clear = useCanvasStore((state) => state.clear);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const purchasedItems = useShopStore((s) => s.purchasedItems);
+  const maxSlots = purchasedItems.includes('extra-save-slots') ? MAX_SAVED_DRAWINGS_UPGRADED : MAX_SAVED_DRAWINGS;
 
   const canvasRef = useRef<DrawingCanvasHandle>(null);
 
@@ -152,7 +155,7 @@ export default function PracticePage() {
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-700">
                 <p className="font-medium">Log in to save drawings</p>
                 <p className="mt-1 text-yellow-600">
-                  You can save up to {MAX_SAVED_DRAWINGS} drawings to your profile.
+                  You can save up to {maxSlots} drawings to your profile.
                 </p>
               </div>
             )}

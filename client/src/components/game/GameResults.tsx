@@ -28,24 +28,59 @@ export default function GameResults({ results }: GameResultsProps) {
       useAuthStore.getState().refreshStatistics();
     }, 2000);
 
-    // Fire confetti burst
-    const end = Date.now() + 1000;
-    const frame = () => {
-      confetti({
-        particleCount: 3,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0, y: 0.6 },
-      });
-      confetti({
-        particleCount: 3,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1, y: 0.6 },
-      });
-      if (Date.now() < end) requestAnimationFrame(frame);
-    };
-    frame();
+    const winner = results.players.find(p => p.rank === 1);
+    const useFireworks = winner?.activeFinisher === 'fireworks';
+
+    let fireworksInterval: ReturnType<typeof setInterval> | null = null;
+
+    if (useFireworks) {
+      // Fireworks finisher effect
+      const duration = 3000;
+      const end = Date.now() + duration;
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0, shapes: ['circle'] as confetti.Shape[] };
+
+      fireworksInterval = setInterval(() => {
+        const timeLeft = end - Date.now();
+        if (timeLeft <= 0) {
+          clearInterval(fireworksInterval!);
+          fireworksInterval = null;
+          return;
+        }
+        const particleCount = 50 * (timeLeft / duration);
+        // Launch from random positions
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: { x: Math.random() * 0.4 + 0.1, y: Math.random() * 0.3 },
+          colors: ['#ff0000', '#ff6600', '#ffcc00', '#ff3399'],
+        });
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: { x: Math.random() * 0.4 + 0.5, y: Math.random() * 0.3 },
+          colors: ['#00ccff', '#6633ff', '#00ff88', '#ffffff'],
+        });
+      }, 250);
+    } else {
+      // Default confetti burst
+      const end = Date.now() + 1000;
+      const frame = () => {
+        confetti({
+          particleCount: 3,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0, y: 0.6 },
+        });
+        confetti({
+          particleCount: 3,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1, y: 0.6 },
+        });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      };
+      frame();
+    }
 
     // Auto-redirect to home after 5 seconds
     const timeout = setTimeout(() => {
@@ -55,8 +90,9 @@ export default function GameResults({ results }: GameResultsProps) {
     return () => {
       clearTimeout(timeout);
       clearTimeout(statsTimeout);
+      if (fireworksInterval) clearInterval(fireworksInterval);
     };
-  }, [navigate]);
+  }, [navigate, results.players]);
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">

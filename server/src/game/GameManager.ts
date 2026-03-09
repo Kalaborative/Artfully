@@ -132,6 +132,10 @@ export class GameManager {
     return null;
   }
 
+  getActiveGameCount(): number {
+    return this.games.size;
+  }
+
   cleanupGame(lobbyId: string): void {
     const game = this.games.get(lobbyId);
     if (game) {

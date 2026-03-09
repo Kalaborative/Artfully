@@ -125,6 +125,11 @@ export default function Layout() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center text-gray-500 text-sm">
             <p>&copy; {new Date().getFullYear()} Artfully. Draw, Guess, Have Fun!</p>
+            <div className="mt-2 space-x-4">
+              <Link to="/faq" className="hover:text-gray-700">FAQ</Link>
+              <Link to="/terms" className="hover:text-gray-700">Terms of Service</Link>
+              <Link to="/privacy" className="hover:text-gray-700">Privacy Policy</Link>
+            </div>
           </div>
         </div>
       </footer>

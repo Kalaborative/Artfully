@@ -370,6 +370,10 @@ export class LobbyManager {
     return null;
   }
 
+  getActiveLobbyCount(): number {
+    return this.lobbies.size;
+  }
+
   handleDisconnect(socket: AuthenticatedSocket): void {
     this.leaveLobby(socket);
   }

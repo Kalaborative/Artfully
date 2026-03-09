@@ -1,6 +1,7 @@
 import type { AuthenticatedSocket } from '../index.js';
 import type { GameManager } from '../../game/GameManager.js';
 import { CHAT_CONFIG } from '@artfully/shared';
+import { logChatMessage } from '../../data/chatLogStore.js';
 function generateId(): string {
   return Math.random().toString(36).substring(2, 15);
 }
@@ -40,6 +41,15 @@ export function setupChatHandlers(
       message: trimmedMessage,
       timestamp: Date.now(),
       isSystem: false
+    });
+
+    logChatMessage({
+      roomId: game.getRoomId(),
+      type: 'message',
+      userId: socket.userId,
+      username: socket.username,
+      message: trimmedMessage,
+      timestamp: Date.now(),
     });
   });
 
@@ -82,6 +92,15 @@ export function setupChatHandlers(
         isFirst: result.isFirst,
         timestamp: Date.now()
       });
+
+      logChatMessage({
+        roomId: game.getRoomId(),
+        type: 'correct_guess',
+        userId: socket.userId,
+        username: socket.username,
+        message: trimmedGuess,
+        timestamp: Date.now(),
+      });
     } else {
       // Broadcast guess attempt to non-guessers only (not to those who already guessed)
       game.broadcastGuessAttempt({
@@ -90,6 +109,15 @@ export function setupChatHandlers(
         username: socket.username,
         guess: trimmedGuess,
         timestamp: Date.now()
+      });
+
+      logChatMessage({
+        roomId: game.getRoomId(),
+        type: 'guess',
+        userId: socket.userId,
+        username: socket.username,
+        message: trimmedGuess,
+        timestamp: Date.now(),
       });
     }
   });

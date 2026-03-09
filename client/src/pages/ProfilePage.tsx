@@ -10,6 +10,8 @@ import DrawingGallery from '../components/profile/DrawingGallery';
 import { User, Trophy, Target, Award, Edit2, Save, X, AlertCircle } from 'lucide-react';
 import MessageWall from '../components/profile/MessageWall';
 import type { SavedDrawing } from '@artfully/shared';
+import { MAX_SAVED_DRAWINGS, MAX_SAVED_DRAWINGS_UPGRADED } from '@artfully/shared';
+import { useShopStore } from '../store/shopStore';
 import type { AvatarFrame } from '../components/ui/Avatar';
 
 export default function ProfilePage() {
@@ -22,6 +24,8 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [drawings, setDrawings] = useState<SavedDrawing[]>([]);
   const activeFrame = (profile?.activeFrame || null) as AvatarFrame;
+  const purchasedItems = useShopStore((s) => s.purchasedItems);
+  const maxSlots = purchasedItems.includes('extra-save-slots') ? MAX_SAVED_DRAWINGS_UPGRADED : MAX_SAVED_DRAWINGS;
 
   const fetchDrawings = useCallback(async () => {
     try {
@@ -300,6 +304,7 @@ export default function ProfilePage() {
           isOwner={true}
           onDelete={handleDeleteDrawing}
           artistName={profile.displayName}
+          maxSlots={maxSlots}
         />
       </div>
 

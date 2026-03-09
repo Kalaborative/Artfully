@@ -11,6 +11,7 @@ import wallRoutes from './routes/wall.js';
 import notificationRoutes from './routes/notifications.js';
 import hallOfFameRoutes from './routes/hallOfFame.js';
 import shopRoutes from './routes/shop.js';
+import chatLogRoutes from './routes/chatLogs.js';
 
 const app = express();
 
@@ -38,6 +39,7 @@ app.use('/api/wall', wallRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/hall-of-fame', hallOfFameRoutes);
 app.use('/api/shop', shopRoutes);
+app.use('/api/chat-logs', chatLogRoutes);
 
 // Error handling
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {

@@ -16,6 +16,9 @@ import AdminPage from './pages/AdminPage';
 import HallOfFamePage from './pages/HallOfFamePage';
 import ShopPage from './pages/ShopPage';
 import SettingsPage from './pages/SettingsPage';
+import TermsPage from './pages/TermsPage';
+import PrivacyPage from './pages/PrivacyPage';
+import FaqPage from './pages/FaqPage';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
@@ -66,6 +69,9 @@ function App() {
         <Route path="leaderboard" element={<LeaderboardPage />} />
         <Route path="hall-of-fame" element={<HallOfFamePage />} />
         <Route path="player/:username" element={<PlayerProfilePage />} />
+        <Route path="terms" element={<TermsPage />} />
+        <Route path="privacy" element={<PrivacyPage />} />
+        <Route path="faq" element={<FaqPage />} />
         <Route
           path="profile"
           element={

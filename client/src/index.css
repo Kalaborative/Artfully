@@ -159,36 +159,74 @@
 
 /* Sunset hero animations */
 @keyframes sunPulse {
-  0%, 100% { transform: scale(1); opacity: 0.8; }
-  50% { transform: scale(1.15); opacity: 1; }
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
 }
 
 @keyframes waveDrift {
-  0% { transform: translateX(-5%) scaleY(1); }
-  50% { transform: translateX(5%) scaleY(1.1); }
-  100% { transform: translateX(-5%) scaleY(1); }
+  0% {
+    transform: translateX(-5%) scaleY(1);
+  }
+
+  50% {
+    transform: translateX(5%) scaleY(1.1);
+  }
+
+  100% {
+    transform: translateX(-5%) scaleY(1);
+  }
 }
 
 @keyframes bubbleRise {
-  0% { transform: translateY(0) scale(1); opacity: 0.3; }
-  50% { opacity: 0.5; }
-  100% { transform: translateY(-100px) scale(0.5); opacity: 0; }
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: translateY(-100px) scale(0.5);
+    opacity: 0;
+  }
 }
 
 @keyframes cloudDrift {
-  0% { transform: translateX(-20%); opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { transform: translateX(calc(100vw + 20%)); opacity: 0; }
+  0% {
+    transform: translateX(-20%);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  90% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(calc(100vw + 20%));
+    opacity: 0;
+  }
 }
 
 /* Dashboard redesign utilities */
 .scanlines {
-  background: linear-gradient(
-    to bottom,
-    rgba(18, 16, 16, 0) 50%,
-    rgba(0, 0, 0, 0.1) 50%
-  );
+  background: linear-gradient(to bottom,
+      rgba(18, 16, 16, 0) 50%,
+      rgba(0, 0, 0, 0.1) 50%);
   background-size: 100% 4px;
   pointer-events: none;
 }
@@ -260,11 +298,11 @@
   margin: 0;
 }
 
-.prose > *:first-child {
+.prose>*:first-child {
   margin-top: 0;
 }
 
-.prose > *:last-child {
+.prose>*:last-child {
   margin-bottom: 0;
 }
 
@@ -310,12 +348,11 @@
 .fire-name {
   position: relative;
   background: linear-gradient(to right,
-    #c45309 0%,
-    #ff5722 25%,
-    #ffffcc 50%,
-    #ff5722 75%,
-    #c45309 100%
-  );
+      #c45309 0%,
+      #ff5722 25%,
+      #ffffcc 50%,
+      #ff5722 75%,
+      #c45309 100%);
   background-size: 300% auto;
   background-clip: text;
   -webkit-background-clip: text;
@@ -334,47 +371,56 @@
   height: 100%;
   z-index: -1;
   color: transparent;
-  animation:
-    fireSway 4s ease-in-out infinite alternate,
+  animation: fireSway 4s ease-in-out infinite alternate,
     fireGlow 2.5s ease-in-out infinite alternate;
-  filter: blur(3px);
 }
 
 @keyframes fireGradient {
-  0% { background-position: 100% center; }
-  100% { background-position: -200% center; }
+  0% {
+    background-position: 100% center;
+  }
+
+  100% {
+    background-position: -200% center;
+  }
 }
 
 @keyframes fireGlow {
   0% {
     text-shadow:
       0 0 5px #ffeb3b,
-      0 -2px 12px #ff9800,
-      0 -5px 20px #ff5722;
+      0 -2px 5px #ff9800,
+      0 -5px 5px #ff5722;
   }
+
   100% {
     text-shadow:
-      0 0 12px #ffeb3b,
-      0 -4px 18px #ff9800,
-      0 -12px 35px #ff5722;
+      0 0 5px #ffeb3b,
+      0 -2px 5px #ff9800,
+      0 -5px 5px #ff5722;
   }
 }
 
 @keyframes fireSway {
-  0% { transform: skewX(-1.5deg); opacity: 0.7; }
-  100% { transform: skewX(1.5deg); opacity: 0.9; }
+  0% {
+    transform: skewX(-1.5deg);
+    opacity: 0.7;
+  }
+
+  100% {
+    transform: skewX(1.5deg);
+    opacity: 0.9;
+  }
 }
 
 .animate-gold-frame-spin {
-  background: conic-gradient(
-    from var(--gold-angle),
-    #fde68a,
-    #f59e0b,
-    #b45309,
-    #fbbf24,
-    #fde68a,
-    #d97706,
-    #f59e0b,
-    #fde68a
-  );
+  background: conic-gradient(from var(--gold-angle),
+      #fde68a,
+      #f59e0b,
+      #b45309,
+      #fbbf24,
+      #fde68a,
+      #d97706,
+      #f59e0b,
+      #fde68a);
 }

@@ -570,10 +570,17 @@ function renderGlitterToCanvas(stroke: Stroke, w: number, h: number): HTMLCanvas
 }
 
 // Glitter brush - cached offscreen render for performance
-export function drawGlitterStroke(ctx: CanvasRenderingContext2D, stroke: Stroke): void {
+export function drawGlitterStroke(ctx: CanvasRenderingContext2D, stroke: Stroke, skipCache = false): void {
   if (stroke.points.length < 2) return;
 
-  const cacheKey = `${stroke.id}_${stroke.points.length}`;
+  // For in-progress strokes, render directly without caching to avoid thrashing
+  if (skipCache) {
+    const offscreen = renderGlitterToCanvas(stroke, ctx.canvas.width, ctx.canvas.height);
+    ctx.drawImage(offscreen, 0, 0);
+    return;
+  }
+
+  const cacheKey = `${stroke.id}`;
   let cached = glitterCache.get(cacheKey);
 
   if (!cached) {
@@ -595,7 +602,7 @@ export function clearGlitterCache(): void {
 }
 
 // Dispatch to the correct stroke renderer
-export function drawStroke(ctx: CanvasRenderingContext2D, stroke: Stroke): void {
+export function drawStroke(ctx: CanvasRenderingContext2D, stroke: Stroke, skipCache = false): void {
   if (stroke.points.length === 0) return;
 
   if (stroke.style.tool === 'pen') {
@@ -608,7 +615,7 @@ export function drawStroke(ctx: CanvasRenderingContext2D, stroke: Stroke): void 
     drawNeonStroke(ctx, stroke);
   } else if (stroke.style.tool === 'glitter') {
     if (stroke.points.length < 2) return;
-    drawGlitterStroke(ctx, stroke);
+    drawGlitterStroke(ctx, stroke, skipCache);
   } else {
     if (stroke.points.length < 2) return;
     drawStandardStroke(ctx, stroke);
@@ -645,5 +652,65 @@ export function redrawCanvas(
 
   if (currentStroke) {
     drawStroke(ctx, currentStroke);
+  }
+}
+
+// Render all completed strokes and fills to a buffer context
+export function renderToBuffer(
+  bufferCtx: CanvasRenderingContext2D,
+  canvasWidth: number,
+  canvasHeight: number,
+  strokes: Stroke[],
+  fillActions: FillAction[]
+): void {
+  bufferCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+  bufferCtx.fillStyle = '#FFFFFF';
+  bufferCtx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+  type CanvasAction = (Stroke & { actionType: 'stroke' }) | (FillAction & { actionType: 'fill' });
+  const actions: CanvasAction[] = [
+    ...strokes.map(s => ({ ...s, actionType: 'stroke' as const })),
+    ...fillActions.map(f => ({ ...f, actionType: 'fill' as const }))
+  ].sort((a, b) => a.timestamp - b.timestamp);
+
+  for (const action of actions) {
+    if (action.actionType === 'stroke') {
+      drawStroke(bufferCtx, action);
+    } else {
+      floodFillCanvas(bufferCtx, action.point.x, action.point.y, action.color, canvasWidth, canvasHeight);
+    }
+  }
+}
+
+// Draw a single stroke onto the buffer (for append optimization)
+export function appendStrokeToBuffer(
+  bufferCtx: CanvasRenderingContext2D,
+  stroke: Stroke
+): void {
+  drawStroke(bufferCtx, stroke);
+}
+
+// Draw a single fill onto the buffer (for append optimization)
+export function appendFillToBuffer(
+  bufferCtx: CanvasRenderingContext2D,
+  fillAction: FillAction,
+  canvasWidth: number,
+  canvasHeight: number
+): void {
+  floodFillCanvas(bufferCtx, fillAction.point.x, fillAction.point.y, fillAction.color, canvasWidth, canvasHeight);
+}
+
+// Composite the buffer + current stroke onto the visible canvas
+export function compositeFrame(
+  visibleCtx: CanvasRenderingContext2D,
+  bufferCanvas: HTMLCanvasElement,
+  currentStroke?: Stroke | null
+): void {
+  visibleCtx.clearRect(0, 0, visibleCtx.canvas.width, visibleCtx.canvas.height);
+  visibleCtx.drawImage(bufferCanvas, 0, 0);
+
+  if (currentStroke) {
+    // Skip glitter cache for in-progress strokes to avoid cache thrashing
+    drawStroke(visibleCtx, currentStroke, true);
   }
 }

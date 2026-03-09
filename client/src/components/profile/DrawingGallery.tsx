@@ -12,9 +12,10 @@ interface DrawingGalleryProps {
   isOwner: boolean;
   onDelete?: (id: string) => Promise<void>;
   artistName?: string;
+  maxSlots?: number;
 }
 
-export default function DrawingGallery({ drawings, isOwner, onDelete, artistName }: DrawingGalleryProps) {
+export default function DrawingGallery({ drawings, isOwner, onDelete, artistName, maxSlots = MAX_SAVED_DRAWINGS }: DrawingGalleryProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [replayData, setReplayData] = useState<{ strokes: any[]; fillActions: any[] } | null>(null);
@@ -98,7 +99,7 @@ export default function DrawingGallery({ drawings, isOwner, onDelete, artistName
         <Palette className="w-5 h-5 text-purple-500" />
         Gallery
         <span className="text-sm font-normal text-gray-400">
-          {drawings.length}/{MAX_SAVED_DRAWINGS}
+          {drawings.length}/{maxSlots}
         </span>
       </h3>
 

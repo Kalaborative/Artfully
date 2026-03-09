@@ -35,11 +35,9 @@ export const SHOP_ITEMS: ShopItem[] = [
   // Profile
   { id: 'gold-frame', name: 'Gold Frame', description: 'A prestigious gold frame around your profile avatar.', category: 'profile', price: 10000, icon: '🖼️', rarity: 'legendary' },
   { id: 'rainbow-frame', name: 'Rainbow Frame', description: 'A colorful rainbow frame for your avatar.', category: 'profile', price: 5000, icon: '🌈', rarity: 'epic' },
-  { id: 'fire-name', name: 'Fire Name', description: 'Your display name gets a fiery effect.', category: 'profile', price: 2500, icon: '🔥', rarity: 'rare' },
-  { id: 'og-badge', name: 'OG Badge', description: 'Show everyone you were here from the start.', category: 'profile', price: 10000, icon: '🏅', rarity: 'legendary' },
+  { id: 'fire-name', name: 'Fire Name', description: 'Your display name gets a fiery effect.', category: 'profile', price: 10000, icon: '🔥', rarity: 'legendary' },
 
   // Gameplay
-  { id: 'extra-save-slots', name: 'Extra Save Slots', description: 'Get 3 additional drawing save slots.', category: 'gameplay', price: 1000, icon: '💾', rarity: 'common' },
-  { id: 'dance-emote', name: 'Dance Emote', description: 'Celebrate wins with a fun dance emote.', category: 'gameplay', price: 2500, icon: '💃', rarity: 'rare' },
-  { id: 'fireworks-emote', name: 'Fireworks Emote', description: 'Light up the screen with fireworks after a win.', category: 'gameplay', price: 5000, icon: '🎆', rarity: 'epic' },
+  { id: 'extra-save-slots', name: 'Extra Save Slots', description: 'Increase your drawing save slots from 3 to 10.', category: 'gameplay', price: 1000, icon: '💾', rarity: 'common' },
+  { id: 'fireworks-finisher', name: 'Fireworks Finisher', description: 'Replace the victory confetti with a dazzling fireworks show everyone can see.', category: 'gameplay', price: 5000, icon: '🎆', rarity: 'epic' },
 ];
